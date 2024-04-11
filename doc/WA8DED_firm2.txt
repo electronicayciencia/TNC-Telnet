@@ -1,0 +1,260 @@
+wa8ded.doc
+                              AX.25 Version 2
+                               Multi-channel
+                               TNC  FIRMWARE
+                               (version 0.5)
+                 Copyright 1985, Ronald E. Raikes (WA8DED)
+     This firmware supports the full AX.25 link layer protocol, version 2.0
+as described in the ARRL specification dated October 1984, as well as the
+pre-existing version 1.x.  This implementation supports multiple
+simultaneous link connections with either version protocol.  This release
+has been assembled for a maximum of four simultaneous connections.  Which
+protocol version is used to initiate a connection is controlled by a tnc
+command, but the version will be automatically changed, if necessary, to
+conform to the version of the tnc responding. (NOTE: The existing firmware
+supplied by TAPR for the TNC-1 will NOT digipeat version 2 protocol.)
+     The firmware is contained in one 2764 EPROM, and is intended to be
+installed in a TAPR TNC-1 (or equivalent, such as the AEA PKT-1 or Heath
+HD-4040) in socket U12.  This assumes that a 6264 RAM is already installed
+in socket U7, with an additional 6264 RAM optionally installed in socket U8
+(recommended if multi-channel operation is intended).  The tnc parallel port
+is not currently used.
+     When installing the EPROM in U12 the first time, it will be necessary
+to start the tnc with the PARAMETER SOURCE switch set to the PROM position. 
+This will cause default parameters to be written into NOVRAM memory but not
+PERMed.  The RS-232 port will be initialized to 300 baud with no
+handshaking.  The tnc source call sign will be all blanks, and should be set
+with the 'I' command, as well as any other default parameters that might
+need changing, before issuing a 'PERM' command.  At this point, the
+PARAMETER SOURCE switch may be set to NOVRAM for subsequent operation.  If
+the terminal baud rate has been changed, the new value will take effect
+following a reset.
+     All information sent to the tnc is in the form of lines, terminated by
+a CARRIAGE RETURN character.  BACKSPACE and DELETE may be used to remove
+single characters from the line.  The entire line may be backspaced out by
+entering a CONTROL-U or CONTROL-X.  Lines beginning with an ESCAPE character
+(echoed as '* ') are interpreted as commands.  If a command is issued with
+no parameter, the current value of that commands parameter is displayed. 
+Lines without a leading ESCAPE character are sent as data.  Data sent to
+channel 0 or a non-zero channel number that is not currently connected, will
+be sent out unproto.  Data lines may be up to 256 characters long, including
+the terminating CARRIAGE RETURN character.
+     The firmware source is written in 6809 assembly language.  Emphasis was
+placed on using a state table driven design, utilizing the state tables
+provided in the ARRL specification.  The source was assembled using a 6809
+cross assembler from 2500 AD Software running on a Z-80/8086 TurboDOS
+development system (CP/M compatable).
+                              COMMAND SUMMARY
+                              ===============
+COMMAND        PARAMETER               DESCRIPTION
+-------        ---------               -----------
+  A (1)            0             Auto linefeed disabled
+                   1             Auto linefeed enabled
+  B (6)           1-15           Terminal baud rate
+* C        Cs1 [Cs2 ... Cs9]     Connect path (0=unproto path)
+* D                              Disconnect
+  E (1)            0             Echo command line disabled
+                   1             Echo command line enabled
+* F (4)           1-15           Frame acknowledge (seconds)
+  H (1200)       50-4800         HDLC baud rate
+  I                Cs            I am (MYCALL)
+  K               1-4            Calibrate
+  L              [0-4]           Display link status
+  M (1)            0             Monitor always disabled
+                   1             Monitor enabled if disconnected
+                   2             Monitor always enabled
+* N (10)         0-255           Number of tries (0=forever)
+* O (4)           1-7            Number of outstanding I frames
+  PERM                           Save parameters to NOVRAM
+  QRES                           Re-start firmware
+  R (1)            0             Repeater disabled
+                   1             Repeater enabled
+  S (1)           0-4            Channel number (0=unproto)
+  T (4)           1-16           Transmitter delay (40ms)
+  U (1)            0             Flow control disabled
+                   1             Flow control enabled
+* V (1)            1             Version 1 protocol initiated
+                   2             Version 2 protocol initiated
+  W (2)           0-15           Repeater wait (40ms)
+  X (1)            0             Transmitter PTT disabled
+                   1             Transmitter PTT enabled
+  Y (1)           0-4            Maximum connections
+   Default values are shown in parenthesis
+*  These commands are applicable to each connection channel
+     (Values set on channel 0 are used after a reset and
+      disconnect to initialize each connection channel)
+                            COMMAND DESCRIPTION
+                            ===================
+     The 'A' command is used to enable or disable the automatic insertion of
+LINEFEED characters after CARRIAGE RETURN characters to the terminal.  This
+parameter is stored in NOVRAM.
+     The 'B' command is used to set the terminal baud rate, using one of the
+following parameters:
+     Parameter     Baud rate
+     ---------     ---------
+         1            50
+         2            75
+         3            110
+         4            135
+         5            150
+         6            300
+         7            600
+         8            1200
+         9            1800
+        10            2400
+        11            3600
+        12            4800
+        13            7200
+        14            9600
+        15            19200
+After setting the baud rate with the 'B' command, the value must be PERMed,
+and will then take effect following a reset.
+     The 'C' command is used to initiate a link connection.  Note that NO
+'v' or 'via' is used between the destination call sign and the digipeater
+call signs.  A 'C' command may be issued on a channel already in use to
+change the digipeater call signs, but not the destination call sign.  A 'C'
+command issued when channel 0 is selected sets the unproto path.
+     The 'D' command is used to initiate a link disconnection.  A 'D' command 
+issued during the establishment or dis-establishment of a link will cause an 
+immediate return to the disconnected state.
+     The 'E' command is used to enable or disable the echoing of input
+(commands and data) to the terminal.  This parameter is stored in NOVRAM.
+     The 'F' command is used to set the frame acknowledgement interval. 
+This interval is used to compute the timeout interval before a packet is
+retransmitted, using the formula:
+        time (seconds) = frame ack * (2 * number of digipeaters + 1)
+     A separate frame acknowlegement interval value is maintained for each
+connection channel.  The value stored in channel 0 is used to initialize
+each connection channel after a reset or disconnection, and is the value
+that is stored in NOVRAM.
+     The 'H' command is used to set the HDLC baud rate.  Non-standard values
+are rounded down to the next possible baud rate.  In this case, use an 'H'
+command with no paramter to display the value actually set.  This parameter
+is stored in NOVRAM.  (A version of the firmware is available for use on
+tnc's running at the faster clock speed.  HDLC rates up to 9600 baud are
+supported and command parameters do not require doubling.)
+     The 'I' command is used to set the tnc source call sign.  The initial
+value is all blanks.  After the source call sign has been entered, the
+'PERM' command should be used to save it for use during subsequent
+operation.
+     The 'K' command is used to calibrate the tnc modem.  The following
+parameters set the calibration modes listed:
+     Parameter     Calibration
+     ---------     -----------
+         1          Modem PLL
+         2          Low  tone
+         3          High tone
+         4          Level/Null
+This table may be be displayed on the terminal by issuing a 'K' command with
+no parameter.  The first three calibration modes will display the measured
+frequency on the terminal.  When each mode is selected, jumpers settings are
+displayed as well as the appropriate ajustment point.  The value shown in
+parenthesis is the normal setting for 1200 baud operation.
+     The 'L' command is used to display the link status of one or all
+channels.  Information displayed includes the connection path, number of
+receive frames not yet displayed, number of send frames not yet transmitted,
+number of transmitted frames not yet acknowledged, and the current retry
+count.  A '+' character preceeding the channel number indicates the
+currently selected channel.
+     The 'M' command is used to set the monitor mode.  When channel 0 is
+selected, monitoring will be enabled if either mode 1 or 2 is set.  This
+parameter is stored in NOVRAM.  When monitoring is enabled, the control and
+protocol identifier fields are both displayed in hexadecimal.  A brief
+listing of the common control field values is included at the end of this
+document.  Currently, the pid field is always an F0, signifying that no
+layer 3 is implemented.
+     The 'N' command is used to set the maximum number of times a frame will
+be transmitted without receiving an appropriate acknowledgement, before a
+link failure is assumed.  A separate maximum number of tries value is
+maintained for each connection channel.  The value stored in channel 0 is
+used to initialize each connection channel after a reset or disconnection,
+and is the value that is stored in NOVRAM.
+     The 'O' command is used to set the maximum number of unacknowledged I
+frames that may be outstanding at any one time.  A separate maximum number
+of unacknowledged I frames value is maintained for each connection channel. 
+The value stored in channel 0 is used to initialize each connection channel
+after a reset or disconnection, and is the value that is stored in NOVRAM.
+     The 'PERM' command is used to change the parameter values stored in
+NOVRAM to those that are currently set.
+     The 'QRES' command is used to restart the firmware as if a hardware
+reset had been issued.
+     The 'R' command is used to enable or disable the digipeating of frames.
+This parameter is stored in NOVRAM.
+     The 'S' command is used to select the current channel number.  This
+parameter is stored in NOVRAM.
+     The 'T' command is used to set the transmitter keyup delay interval. 
+The parameter is specified in 40ms increments.  This parameter is stored in
+NOVRAM.
+     The 'U' command is used to enable or disable flow control to the
+terminal.  If flow control is enabled, output to the terminal will be
+inhibited while entering commands or data.  If flow control is disabled,
+output to the terminal will not be restricted.  Flow control should be
+disabled during periods in which the tnc is operated without a terminal, to
+avoid suspending output which will consume buffers.  This parameter is
+stored in NOVRAM.
+     The 'V' command is used to select whether version 1 or 2 protocol will
+be used to initiate a link connection.  A separate protocol version number
+value is maintained for each connection channel.  The value stored in
+channel 0 is used to initialize each connection channel after a reset or
+disconnection, and is the value that is stored in NOVRAM.
+     The 'W' command is used to set the digipeater wait interval.  The
+parameter is specified in 40ms increments.  This parameter is stored in
+NOVRAM.
+     The 'X' command is used to enable or disable the transmitter PTT
+control line.  This parameter is stored in NOVRAM.
+     The 'Y' command is used to set the maximum number of connections that
+may established by incoming requests.  This command has no effect on the
+operators ability to initiate outgoing connection requests.  This parameter
+is stored in NOVRAM.
+                             DEFAULT PARAMETERS
+                             ==================
+     In some instances, it may be desirable to have default parameters which
+differ from the standard values.  To allow easy access, all default
+parameters have been placed at the beginning of the EPROM.  The following
+listing defines the layout of this area:
+     TYPE     VALUE          DESCRIPTION
+     ----     -----          -----------
+     BYTE      1BH           COMMAND CHARACTER
+     BYTE     '      ',60H   SOURCE CALL SIGN (SEE NOTE 1)
+     WORD     000AH          HDLC BAUD RATE DIVISOR (SEE NOTE 2)
+     BYTE      06H           TERMINAL BAUD RATE
+     BYTE      01H           MAXIMUM CONNECTIONS
+     BYTE      01H           MONITOR MODE
+     BYTE      01H           REPEATER DISABLE/ENABLE
+     BYTE      02H           REPEATER WAIT (40ms)
+     BYTE      04H           TRANSMITTER DELAY (40ms)
+     BYTE      01H           FLOW CONTROL DISABLE/ENABLE
+     BYTE      01H           TRANSMITTER PTT DISABLE/ENABLE
+     BYTE      01H           CHANNEL NUMBER
+     BYTE      01H           AUTO LINEFEED DISABLE/ENABLE
+     BYTE      01H           ECHO COMMAND LINE DISABLE/ENABLE
+     BYTE      00H           VERSION 2 INITIATED DISABLE/ENABLE
+     BYTE      04H           MAXIMUM UNACKNOWLEDGED FRAMES
+     BYTE      0AH           MAXIMUM TRY COUNT
+     BYTE      04H           FRAME ACKNOWLEDGE INTERVAL
+     BYTE     'CQ    ',60H   UNPROTO CALL SIGN
+DISABLE = 00H / ENABLE = 01H
+NOTE 1: The secondary station id must be shifted left one bit and or'ed with
+60H.
+NOTE 2: The HDLC baud rate divisor is computed using the formula:
+          divisor = (14400 / buad rate) - 2
+The HDLC baud rate divisor is stored most significant byte first.
+                            CONTROL FIELD VALUES
+                            ====================
+     VALUE     DESCRIPTION
+     -----     -----------
+      x1       RR   - Receive Ready
+      x5       RNR  - Receive Not Ready
+      x9       REJ  - Reject
+      03       UI   - Unnumbered Information
+      0F       DM   - Disconnected Mode
+      2F       SABM - Connect Request
+      43       DISC - Disconnect Request
+      63       UA   - Unnumbered Acknowledge
+      87       FRMR - Frame Reject
+      Even     I    - Information (x0,x2,x4,x6,x8,xA,xC,xE)
+NOTE:  In some instances, the above values may have 10H added to them, which
+is the poll/final bit set.  For more information, see ARRL AX.25 Amateur
+Packet-Radio Link-Layer Protocol specification, Version 2.0, dated October
+1984.
+At W6CUS: Date 850710 Time 1132 Last msg # 30, 9 active msgs
