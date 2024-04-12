@@ -1,10 +1,13 @@
 """
-AX.25 to Telnet emulator.
+TFPCX-Telnet: An AX.25 emulator for TCP connections.
 
 EA4BAO  2024/04/09
 
-Monitor interface
+Monitor channel
 """
+
+import os
+import sys
 
 DEFAULT_CALLSIGN = b"NOCALL"
 DEFAULT_FILTER = b"N"
@@ -15,27 +18,20 @@ MAX_I_MSGS = 9      # max data frames to store in msgs buffer
 MSG_I = 0  # Message is data
 MSG_S = 1  # Message is link status
 
-import os
-import sys
+MSG_MON_H  = 4  # Monitor header/no info
+MSG_MON_HI = 5  # Monitor header/info
+MSG_MON_I  = 6  # Monitor information
 
 
 class Monitor():
 
-    def __init__(self):
-        
+    def __init__(self, verbose = 0):
+
         self.msgs = []  # link status msgs and data msgs must be in the same buffer
                         # because G command requieres them in chronological order
         self.call    = DEFAULT_CALLSIGN   # callsign
         self.mfilter = DEFAULT_FILTER     # Monitor filter
         self.station = DEFAULT_CALLSIGN   # CQ callsign
-
-#    def add_frame(self, data):
-#        """
-#        Append data to TX buffer.
-#        Data is a string of bytes
-#        May be thread unsafe.
-#        """
-#        self.buffer_tx += data
 
 
     def _count_msgs(self, t = ""):
@@ -51,23 +47,15 @@ class Monitor():
 
     def _get_msg(self, t = ""):
         """
-        Get one of the link status messages in queue
-        t = 0 for data, 1 for status, "" for any
+        Get one of the messages in queue
         Or (None, None)
+        TODO: can't select between msg types
         """
         if not self.msgs:
             return (None, None)
-            
-        if t == "":
-            m = self.msgs.pop(0)
-            return m[1]
 
-        else:
-            for i in range(0, len(self.msgs)):
-                m = self.msgs[i]
-                if m[0] == t:
-                    self.msgs.pop(i)
-                    return m[1]
+        m = self.msgs.pop(0)
+        return m
 
 
     def C(self, station = b""):
@@ -90,6 +78,7 @@ class Monitor():
             self._count_msgs(MSG_S),                      # a = Number of link status messages not yet displayed
             self._count_msgs(MSG_I)                       # b = Number of receive frames not yet displayed
         )
+
 
     def G(self, t = ""):
         """
@@ -121,6 +110,18 @@ class Monitor():
         else:
             return self.mfilter
 
+
+    def log(self, t, msg, f):
+        """
+        Add a monitor event
+        t: packet type (header, header+info, info)
+        msg: message bytes
+        f: frame type (ISU)
+        """
+        self.msgs.append([t, msg])
+        #self.msgs.append([MSG_MON_H,  b"fm %s to %s ctl SABM" % (fm, to)])
+        #self.msgs.append([MSG_MON_HI, b"fm %s to %s ctl I%02X pid %02X" % (fm, to, 5, 14)])
+        #self.msgs.append([MSG_MON_I,  b"Hi\r"])
 
 
 

@@ -1,10 +1,9 @@
 """
-WA8DED TNC AX.25 to Telnet emulator.
+TFPCX-Telnet: An AX.25 emulator for TCP connections.
 
 EA4BAO  2024/04/09
 
-Commands arrive via named pipe from a virtual machina COM port.
-
+TNC interface
 
 User mode format:
 b'\x11' <- DC1 (prevents XOFF lockup)
@@ -24,20 +23,11 @@ b'\x01' <- command
 b'\x01' <- length - 1
 b'G'    <- Get
 b'0'    <- Optional parameter (0: data, 1: link status)
-
-
-See
- - doc/WA8DED_firm21.txt
- - doc/host_mode_guide.txt
-
 """
 
-import sys
 from channel import Channel
 from monitor import Monitor
-
-
-FILE = r'\\.\PIPE\tnc'
+import threading
 
 # Interface mode
 MODE_TERM = 0  # terminal mode
@@ -55,32 +45,42 @@ COND_CONINFO = 7     # Connected information         byte-count format
 
 MSG_I = 0  # Message is data
 MSG_S = 1  # Message is link status
+MSG_MON_H  = 4  # Monitor header/no info
+MSG_MON_HI = 5  # Monitor header/info
+MSG_MON_I  = 6  # Monitor information
+
+class TNC(threading.Thread):
 
 
-class TNC():
-
-
-    def __init__(self, file):
+    def __init__(self, file, stafile, verbose = 0):
+        """
+        file: device file to read/write
+        stafile: json with known stations IP
+        verbose: log level
+        """
+        threading.Thread.__init__(self, daemon=True)
+        
+        self.verbose = verbose
+        self.stafile = stafile
         
         self.channels = []
         self.max_connections = 4
         self.mode = MODE_TERM  # always start in terminal mode
 
         self.f = open(file, 'rb+', buffering=0)
-        
+
         self.terminate = False
-        
+
         self.channels = [None] * (self.max_connections + 1)
         self.init_monitor()
         self.init_channels()
-        self.run()
 
 
     def init_monitor(self):
         """
         Initializes channel 0: monitor
         """
-        self.channels[0] = Monitor()
+        self.channels[0] = Monitor(verbose = self.verbose)
 
 
     def init_channels(self):
@@ -88,7 +88,12 @@ class TNC():
         Initializes channels
         """
         for i in range(0, self.max_connections):
-            self.channels[i+1] = Channel()
+            self.channels[i+1] = Channel(
+                ch = i+1,
+                monitor = self.channels[0],
+                stafile = self.stafile,
+                verbose = self.verbose
+            )
             self.channels[i+1].start()
 
 
@@ -186,12 +191,22 @@ class TNC():
         elif cond == COND_CONINFO:
             m = b"%c%c%c%s" % (ch, cond, len(msg) - 1, msg)
 
+        elif cond == COND_MON:
+            m = m = b"%c%c%s\0" % (ch, cond, msg)
+
+        elif cond == COND_MONHDR:
+            m = m = b"%c%c%s\0" % (ch, cond, msg)
+
+        elif cond == COND_MONINF:
+            m = b"%c%c%c%s" % (ch, cond, len(msg) - 1, msg)
+
         else:
             print("Host mode response type %d not implemented" % cond)
             return
 
-        print(b"Response: %s" % m)
-        
+        if self.verbose > 0:
+            print("Response:" , m)
+
         self.f.write(m)
 
 
@@ -201,12 +216,12 @@ class TNC():
         """
         c = cmd[0:1]
         args = cmd[1:].strip()
-        
+
         # Check channel number
         if ch > self.max_connections:
             self.host_response(ch, COND_ERRMSG, b"INVALID CHANNEL NUMBER")
             return
-        
+
         # Execute command
         if c == b"G": # G0  polling
             if args == b"0":
@@ -215,16 +230,24 @@ class TNC():
                 (t, msg) = self.channels[ch].G(1)
             else:
                 (t, msg) = self.channels[ch].G()
-            
+
             if not msg:
                 self.host_response(ch, COND_OK)
             else:
                 if t == MSG_S:
                     self.host_response(ch, COND_LNK, msg)
-                else:
+                elif t == MSG_I:
                     self.host_response(ch, COND_CONINFO, msg)
-                
-                
+                elif t == MSG_MON_H:
+                    self.host_response(ch, COND_MON, msg)
+                elif t == MSG_MON_HI:
+                    self.host_response(ch, COND_MONHDR, msg)
+                elif t == MSG_MON_I:
+                    self.host_response(ch, COND_MONINF, msg)
+                else:
+                    print("Unknown packet type: %d", t)
+
+
         elif c == b"C":  # C GP160  CQ callsing
             if args == b"":
                 ans = self.channels[ch].C()
@@ -235,7 +258,7 @@ class TNC():
             else:
                 self.channels[ch].C(args)    # todo: this may fail if connected
                 self.host_response(ch, COND_OK)
-        
+
         elif c == b"I":  # I NOCALL identification
             if args == b"":
                 ans = self.channels[ch].I()
@@ -243,7 +266,7 @@ class TNC():
             else:
                 self.channels[ch].I(args)    # todo: this may fail if connected
                 self.host_response(ch, COND_OK)
-        
+
         elif c == b"M":  # MIUS Monitor Filter
             if args == b"":
                 ans = self.channels[0].M()
@@ -273,7 +296,6 @@ class TNC():
                 self.host_response(ch, COND_OK)
                 self.term_mode()
                 self.term_response(b"ok")
-                self.terminate = True
             else:
                 self.host_response(ch, COND_OK)
 
@@ -312,13 +334,15 @@ class TNC():
         c = ord(self.f.read(1))  # channel
         i = ord(self.f.read(1))  # infocmd
         l = ord(self.f.read(1))  # len - 1
-        
+
         # Note read on pipes is not blocking
         buffer = b""
         while len(buffer) < l + 1:
             buffer += self.f.read(1)
+
+        if self.verbose > 0:
+            print("Command: Ch=%d i=%d len=%d buffer='%s'" % (c,i,l,buffer))
         
-        print(b"Command: %d %d %d '%s'" % (c,i,l,buffer))
         return (c, i, buffer)
 
 
@@ -343,9 +367,3 @@ class TNC():
                     self.host_cmd(ch, buffer)
                 else:
                     self.host_data(ch, buffer)
-
-
-if __name__ == '__main__':
-    t = TNC(FILE)
-    t.run()
-

@@ -1,9 +1,10 @@
 """
-AX.25 to Telnet emulator.
+TFPCX-Telnet: An AX.25 emulator for TCP connections.
 
 EA4BAO  2024/04/09
 
 Channel interface with TCP sockets.
+
 Asynchronous Telnet channel class working as a daemon Thread.
 
 Usage:
@@ -16,8 +17,6 @@ Usage:
 
 
 DEFAULT_CALLSIGN = b"NOCALL"
-
-DEF_STA_FILE = "./stations.json"
 
 MAX_PKTLEN = 254    # max data frame length
 MAX_I_MSGS = 9      # max data frames to store in msgs buffer
@@ -48,6 +47,11 @@ ST_EXIT    = -1         # to finish the loop
 MSG_I = 0  # Message is data
 MSG_S = 1  # Message is link status
 
+MSG_MON_H  = 4  # Monitor header/no info
+MSG_MON_HI = 5  # Monitor header/info
+MSG_MON_I  = 6  # Monitor information
+
+
 import os
 import socket
 import errno
@@ -59,8 +63,13 @@ from time import sleep
 
 class Channel(threading.Thread):
 
-    def __init__(self, stafile = DEF_STA_FILE):
+    def __init__(self, ch, monitor, stafile, verbose = 0):
         threading.Thread.__init__(self, daemon=True)
+        self.channel = ch      # my channel id
+        self.monitor = monitor # to simulate monitor traffic
+        self.stafile = stafile # file with known stations IP
+        self.verbose = verbose # log level
+
         self.status = ST_DISC  # disconnected
         self.buffer_tx = b""   # nothing to send
         self.msgs = []         # link status msgs and data msgs must be in the same buffer
@@ -69,7 +78,7 @@ class Channel(threading.Thread):
         self.station = None    # remote station to connect
         self.call = DEFAULT_CALLSIGN   # callsign
 
-        self.stafile = stafile # file with known stations IP
+        self.seq  = 0          # for fake monitor
 
 
     def run(self):
@@ -77,7 +86,7 @@ class Channel(threading.Thread):
         Main loop
         """
         while True:
-        
+
             # Disconnected
             if self.status == ST_DISC:
 
@@ -100,6 +109,8 @@ class Channel(threading.Thread):
                         err = s.connect_ex(ipaddr)
                         errname = errno.errorcode[err]
 
+                        self._monitor("MySYN")
+
                         # WSAEWOULDBLOCK = first attempt
                         if errname in ["WSAEWOULDBLOCK", "EINPROGRESS"]:
                             self.status = ST_SETUP
@@ -108,8 +119,8 @@ class Channel(threading.Thread):
                                 MSG_S,
                                 b"LINK FAILURE with %s: See terminal output" % self.station
                             ])
-
                             print("Unknown error:", errname)
+                            self._monitor("ItsRST")
                             self.station = None # force disconnect status
 
 
@@ -131,8 +142,9 @@ class Channel(threading.Thread):
                         self.status = ST_CONN
                         self.msgs.append([
                             MSG_S,
-                            b"CONNECTED to %s" % self.station
+                            b"CONNECTED to %s via Internet" % self.station
                         ])
+                        self._monitor("ItsSYNACK")
 
                 # connection attempt failed
                 else:
@@ -142,12 +154,14 @@ class Channel(threading.Thread):
                             MSG_S,
                             b"BUSY fm %s" % self.station
                         ])
+                        self._monitor("ItsRST")
 
                     else:
                         self.msgs.append([
                             MSG_S,
                             b"LINK FAILURE with %s" % self.station
                         ])
+                        self._monitor("ItsRST")
                         print("Unknown error:", errname)
 
                     self.station = None # force disconnect status
@@ -160,15 +174,18 @@ class Channel(threading.Thread):
                 if len(self.buffer_tx) > 0:
                     try:
                         n = s.send(self.buffer_tx[0:MAX_PKTLEN])
+                        self._monitor("MyPSH", self.buffer_tx[0:MAX_PKTLEN])
                     except ConnectionResetError:
                         self.msgs.append([
                             MSG_S,
                             b"LINK RESET fm %s" % self.station
                         ])
+                        self._monitor("ItsRST")
                         self.station = None # force disconnect status
 
                     if n > 0:
                         self.buffer_tx = self.buffer_tx[n:]
+                        self._monitor("ItsPSHACK")
 
                 # There is space to receive data
                 if self._count_msgs(MSG_I) < MAX_I_MSGS:
@@ -182,12 +199,16 @@ class Channel(threading.Thread):
                                 MSG_S,
                                 b"DISCONNECTED fm %s" % self.station
                             ])
+                            self._monitor("ItsFIN")
+                            self._monitor("MyFINACK")
                             self.station = None # force disconnect status
 
                         else:
                             # purge binary data (telnet protocol)
                             data = data.replace(b'\xff\xfc\x01', b'')
                             self.msgs.append([MSG_I, data])
+                            self._monitor("ItsPSH", data)
+                            self._monitor("MyPSHACK")
 
                     # no data to read
                     except BlockingIOError:
@@ -199,6 +220,7 @@ class Channel(threading.Thread):
                             MSG_S,
                             b"LINK RESET fm %s" % self.station
                         ])
+                        self._monitor("ItsRST")
                         self.station = None # force disconnect status
 
             # Disconnect
@@ -219,20 +241,105 @@ class Channel(threading.Thread):
         Return (False, False) if the station's IP data is not known.
         """
         station = station.decode().upper() # station is bytes, but json is string
-        
+
         try:
             with open(self.stafile) as f:
                 stations = json.load(f)
-        
+
         except Exception as e:
             print("Cannot open stations file:", e)
             stations = {}
-        
+
         if station in stations:
             (host, port) = stations[station].split(":")
             return (host, int(port))
         else:
             return (False, False)
+
+
+    def _monitor(self, t, i = None):
+        """
+        Simulate monitor events
+        """
+        me = self.call
+        remote = self.station
+        
+        # Link setup
+        if t == "MySYN":
+            mtype = MSG_MON_H
+            ftype = "U"
+            msg   = b"fm %s to %s ctl SABM+" % (me, remote)
+
+        elif t == "ItsSYNACK":
+            mtype = MSG_MON_H
+            ftype = "U"
+            msg   = b"fm %s to %s ctl UA-" % (remote, me)
+
+        elif t == "MyFIN":
+            mtype = MSG_MON_H
+            ftype = "U"
+            msg   = b"fm %s to %s ctl DISC+" % (me, remote)
+
+        elif t == "ItsFINACK":
+            mtype = MSG_MON_H
+            ftype = "U"
+            msg   = b"fm %s to %s ctl UA-" % (remote, me)
+
+        elif t == "ItsFIN":
+            mtype = MSG_MON_H
+            ftype = "U"
+            msg   = b"fm %s to %s ctl DISC+" % (remote, me)
+
+        elif t == "MyFINACK":
+            mtype = MSG_MON_H
+            ftype = "U"
+            msg   = b"fm %s to %s ctl UA-" % (me, remote)
+
+        elif t == "ItsRST":
+            mtype = MSG_MON_H
+            ftype = "U"
+            msg   = b"fm %s to %s ctl DM-" % (remote, me)
+
+        elif t == "MyPSH" and i:
+            seq = self.seq
+            nxt = (seq + 1) % 8
+            mtype = MSG_MON_HI
+            ftype = "I"
+            msg   = b"fm %s to %s ctl I%d%d pid F0" % (me, remote, nxt, seq)
+
+        elif t == "ItsPSHACK":
+            seq = self.seq
+            nxt = (seq + 1) % 8
+            mtype = MSG_MON_H
+            ftype = "S"
+            msg   = b"fm %s to %s ctl RR%d+" % (remote, me, nxt)
+            self.seq = nxt
+
+        elif t == "ItsPSH" and i:
+            seq = self.seq
+            nxt = (seq + 1) % 8
+            mtype = MSG_MON_HI
+            ftype = "I"
+            msg   = b"fm %s to %s ctl I%d%d pid F0" % (remote, me, nxt, seq)
+
+        elif t == "MyPSHACK":
+            seq = self.seq
+            nxt = (seq + 1) % 8
+            mtype = MSG_MON_H
+            ftype = "S"
+            msg   = b"fm %s to %s ctl RR%d+" % (me, remote, nxt)
+            self.seq = nxt
+
+        else:
+            print("Warning: unknown monitor event '%s'" % t)
+            return
+
+        self.monitor.log(mtype, msg, ftype)
+
+        if i:
+            i = i.replace(b"\r\n", b"\r")
+            self.monitor.log(MSG_MON_I, i, "I")
+
 
 
     def tx(self, data):
@@ -264,7 +371,7 @@ class Channel(threading.Thread):
         """
         if not self.msgs:
             return (None, None)
-            
+
         if t == "":
             m = self.msgs.pop(0)
             return m
@@ -293,6 +400,8 @@ class Channel(threading.Thread):
         Disconnect from a station
         """
         if self.status != ST_DISC:
+            self._monitor("MyFIN")
+            self._monitor("ItsFINACK")
             self.msgs.append([
                 MSG_S,
                 b"DISCONNECTED fm %s" % self.station
