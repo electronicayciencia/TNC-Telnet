@@ -11,7 +11,9 @@ See doc/ directory.
 
 import sys
 import argparse
+from time import sleep
 from tnc import TNC
+
 
 DEFAULT_FILE = r'\\.\PIPE\tnc'
 DEF_STA_FILE = "./tnc/stations.json"
@@ -49,8 +51,9 @@ parser.add_argument(
 args = parser.parse_args()
 
 print(DESCRIPTION)
-print("Reading from '%s'... Press Ctrl+C to quit." % args.file)
-print("Verbose level: %d" % args.v)
+print("Reading from '%s'..." % args.file)
+if args.v > 0:
+    print("Verbose level: %d" % args.v)
 
 t = TNC(
     file = args.file, 
@@ -61,9 +64,10 @@ t.start()
 
 try:
     while True:
-        pass
+        input("Press Ctrl+C to quit.\n")
 except KeyboardInterrupt:
     pass
 
-print("73")
+print("Bye! 73")
+
 sys.exit()
