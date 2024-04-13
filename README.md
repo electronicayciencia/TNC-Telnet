@@ -1,4 +1,6 @@
-# TFPCX-Telnet: An AX.25 emulator for TCP connections.
+# TFPCX-Telnet
+
+An AX.25 emulator for TCP connections.
 
 This interface emulates *The Firmware* TNC and makes regular TCP/IP traffic appears like AX.25.
 
