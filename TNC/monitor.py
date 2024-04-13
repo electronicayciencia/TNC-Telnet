@@ -34,12 +34,12 @@ class Monitor():
         self.station = DEFAULT_CALLSIGN   # CQ callsign
 
 
-    def _count_msgs(self, t = ""):
+    def _count_msgs(self, t = None):
         """
         Return the number of msgs of type t in the msgs buffer
         t = 0 for data, 1 for status, "" for any
         """
-        if t == "":
+        if t == None:
             return len(self.msgs)
         else:
             return len([m for m in self.msgs if m[0] == t])
@@ -75,8 +75,8 @@ class Monitor():
         b"0 0"
         """
         return b"%d %d" %(
-            self._count_msgs(MSG_S),                      # a = Number of link status messages not yet displayed
-            self._count_msgs(MSG_I)                       # b = Number of receive frames not yet displayed
+            0,                    # a = Number of link status messages not yet displayed
+            self._count_msgs()    # b = Number of receive frames not yet displayed
         )
 
 

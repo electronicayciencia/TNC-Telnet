@@ -1,0 +1,2370 @@
+
+            €€€€€€€€  €€€€€€€  €€€€€€     €€€€   €€    €€
+            €€±€€±€€±  €€±±€€±  €€±±€€   €€±±€€  €€±   €€±
+            €±±€€± €±  €€±  €±  €€± €€± €€±±  €±  €€  €€±±
+             ± €€±  ±  €€±€  ±  €€± €€± €€±    ±   €€€€±±
+               €€±     €€€€±    €€€€€±± €€±         €€±±
+               €€±     €€±€±    €€±±±±  €€±        €€€€
+               €€±     €€± ±    €€±     €€±   €   €€±±€€
+               €€±     €€±      €€±      €€  €€± €€±±  €€
+              €€€€    €€€€     €€€€       €€€€±± €€±   €€±
+               ±±±±    ±±±±     ±±±±       ±±±±   ±±    ±±
+
+                       The Firmware PC Extended
+                   Version 2.10 (20. November 1993)
+
+                  Residenter AX.25-Controller fÅr PC
+                    und BayCom-Modem, -USCC-Karte,
+                     PA0HZP-OptoPcScc-Karte, KISS
+                    mit WA8DED-Hostmode-Interface
+
+                 von RenÇ Stange, DG0FT @DB0KG.DEU.EU
+
+           Frei fÅr Funkamateure, keine kommerzielle Nutzung
+
+
+
+
+Inhaltsverzeichnis
+
+  1.      Vorwort
+  2.      Hinweise zur Dokumentation
+  3.      Neuerungen seit Version 2.00
+  4.      Schnellstart
+  5.      EinfÅhrung
+
+  6.      Aufruf und Konfiguration
+  6.1.    Allgemeine Optionen
+  6.2.    Optionen zum residenten Laden
+  6.2.1.  Port- und Baudraten-Konfiguration
+  6.2.2.  TFPC- und DRSI-Interface
+  6.2.3.  Sonstige Optionen
+  6.3.    TFPCX aus dem Speicher entfernen
+  6.4.    Terminalmode
+
+  7.      Installation
+  7.1.    SP (DL1MEN)
+  7.2.    GP (DH1DAE)
+  7.3.    THP (DL1BHO)
+  7.4.    TERM (DL5FBD)
+  7.5.    CT (K1EA)
+  7.6.    DIEBOX (DF3AV)
+  7.7.    WINPR (DG6BI)
+  7.8.    TOP (DF8MT)
+  7.9.    FBB (F6FBB)
+  7.10.   MS-Windows, OS/2 u.a.
+
+  8.      Betrieb
+  8.1.    Multiport-Erweiterungen
+  8.2.    Besonderheiten von Befehlen
+  8.3.    KISS
+  8.4.    DAMA
+
+
+  ANHANG
+
+  1.      BefehlsÅbersicht
+
+  2.      Fehlerbehebung (Modembetrieb)
+  2.1.    Sende- und Empfangsprobleme
+  2.2.    Probleme mit anderen Programmen
+  2.3.    Hardwareprobleme
+
+  3.      Hardwareanschlu·
+  3.1.    Serielle Modems
+  3.2.    BayCom-USCC-Karte
+
+  4.      Informationen fÅr Softwareentwickler
+  4.1.    Programm-Interface
+  4.1.1.  TFPC-Interface
+  4.1.2.  DRSI-Interface
+  4.1.3.  Spezielle Funktionen
+  4.2.    Format von Meldungen
+  4.3.    Extended Hostmode
+  4.4.    Bisherige Versionen
+
+  5.      Urheberrechte und Nutzungsbedingungen
+  6.      Bezugshinweise
+
+
+
+1. Vorwort
+
+  Diese  TFPCX-Version hat leider viel lÑnger auf sich warten  lassen,
+  als  ich ursprÅnglich geplant hatte. Da die im  Februar  erschienene
+  Version 2.01, in baldiger Erwartung dieser vorliegenden Version, von
+  mir  nie  in den Mailboxen angekÅndigt wurde und auch  kaum  bekannt
+  geworden ist, beziehe ich mich in dieser Dokumentation auf das TFPCX
+  v2.00  als  VorgÑngerversion.  Um die  Verîffentlichung  nicht  noch
+  weiter zu verzîgern, mu·te ich einige schon angekÅndigte énderungen,
+  wie  die  grundlegende öberarbeitung der  Modemansteuerung,  nochmal
+  verschieben.
+
+  Als  Neuerung  ist vor allem die UnterstÅtzung  des  KISS-Modes  fÅr
+  mehrere  Ports zugleich, der PA0HZP-OptoPcScc-Karte und der  BayCom-
+  9k6-USCC-Karte zu erwÑhnen. Au·erdem gibt es bessere Konfigurations-
+  mîglichkeiten,   Verbesserungen  beim  DAMA-Betrieb  u.a.  FÅr   die
+  Aktivierung  des KISS-Modes im TNC wird das neue  Programm  KISSINIT
+  mitgeliefert (siehe KISSINIT.DOC). Die Neuerungen sind in  Abschnitt
+  3.  aufgefÅhrt. Abschnitt 4. gibt einige Hinweise, was beim  Umstieg
+  von einer frÅheren Version zu beachten ist.
+
+  Ich  mu· darauf hinweisen, da· ich nicht garantieren kann,  da·  das
+  TFPCX  auf allen PCs problemlos mit seriellen  Modems  funktioniert,
+  besonders auf langsamen Rechnern gibt es teilweise Empfangsprobleme.
+  XTs  mit  Taktfrequenzen  unter  8  MHz  sind  nicht  oder  nur  mit
+  EinschrÑnkungen  verwendbar.  Oftmals  verursachen  auch   bestimmte
+  residente  Programme derartige Probleme (siehe Anhang 2.1.).  Da  es
+  sich  hier um kein kommerzielles Produkt handelt, nehme ich  das  in
+  Kauf.  Mit gewissen Kompromissen mÅ·ten die meisten Nutzer zu  einem
+  brauchbaren Betrieb kommen.
+
+  Mein Dank gilt diesmal Peter (DB2OS), Asko (DG2BRS), Denis  (G0KIU),
+  Henk  (PA0HZP),  Rob (PE1CHL), dem BayCom-Team, allen  Spendern  und
+  allen Usern, die mir mit Hinweisen und VorschlÑgen geholfen haben.
+
+
+  73s von RenÇ, DG0FT                    Strausberg, 20. November 1993
+
+
+
+2. Hinweise zur Dokumentation
+
+  Ich  gehe  in  dieser  Dokumentation  davon  aus,  da·  bereits  ein
+  funktionsfÑhiges  Modem,  eine SCC-Karte oder ein KISS-TNC  und  ein
+  passendes  Terminalprogramm zur VerfÅgung stehen und Kenntisse  Åber
+  die TNC-Software  The Firmware (NORD><LINK) oder die WA8DED-Firmware
+  vorhanden   sind.  Zu  dieser  Beschreibung  gehîrt   deshalb   eine
+  Dokumentation  der  The Firmware 2.4c, die man bei  Bedarf  zu  Rate
+  ziehen  sollte.  Hier werden nur die Unterschiede im  Vergleich  zur
+  TNC-Firmware behandelt.
+
+  Wer  auch ohne lÑngeres Studium dieser Dokumentation mit  dem  TFPCX
+  zurechtkommt, hat Zeit gespart, aber vielleicht auch ein paar Tricks
+  Åbersehen. Falls man jedoch Fragen oder Probleme hat, dann bitte ich
+  darum, da· man zunÑchst hier nach einer Lîsung sucht. Die  Erfahrung
+  zeigt, da· immer wieder die gleichen Fragen gestellt werden und  ich
+  habe  das  hier berÅcksichtigt ohne  Anspruch  auf  VollstÑndigkeit.
+  Allerdings  kann diese Dokumentation auch kein Grundkurs fÅr  MS-DOS
+  und  Packet Radio sein. Man kann Åbrigens sehr gut die  Suchfunktion
+  eines Texteditors nutzen, um ein bestimmtes Stichwort zu finden.
+
+  In dieser Dokumentation wird einige Hard- und Software erwÑhnt,  die
+  von   anderen  Funkamateuren  entwickelt  wurde,  meist  steht   das
+  Rufzeichen des Urhebers in Klammern dahinter.
+
+  An einigen Stellen (besonders in Anhang 1.) wird der Standardwert 10
+  als die maximale Kanalanzahl genannt. Dieser Wert ist konfigurierbar
+  und dient nur als Platzhalter. Wird die Option '-CH' verwendet, gilt
+  der angegebene Parameter anstelle der '10'.
+
+  Begriffe und AbkÅrzungen:
+
+  Port       ein  Packet Radio Interface bestehend  aus  Schnittstelle
+             (COM,  LPT  oder  SCC-Port),  Modem  und  FunkgerÑt,  bei
+             mehreren Ports wird hier von Multiport-Betrieb gesprochen
+
+  Kanal      einer  der  maximal 10  gleichzeitig  mîglichen  Connects
+             (Verbindungen),  beim BayCom ist die Bedeutung  von  Port
+             und Kanal genau entgegengesetzt
+
+  Frame      eine Åber Packet Radio Åbertragene Dateneinheit  (Paket),
+             bestehend aus Adre·feld, Steuerfeld, Daten und PrÅfsumme
+
+  Interrupt  Unterbrechung des gerade laufenden Programms durch  Hard-
+             ware-Ereignisse  (z.B. gedrÅckte Taste, bestimmtes  Zeit-
+             intervall vorbei), Software-Interrupts werden nicht durch
+             die  Hardware  sondern durch einen  bestimmten  Programm-
+             befehl ausgelîst
+
+  KISS       (KA9Q  u.a.)  steht  fÅr  'Keep  It  Simple  Stupid'  und
+             definiert  ein einfaches Datenformat zur öbertragung  von
+             Frames  und TNC-Parametern Åber eine asynchrone  serielle
+             Schnittstelle.  UrsprÅngliches Ziel war  die  Verlagerung
+             der  Protokollabarbeitung  aus dem TNC in  den  Terminal-
+             Rechner,  um vom TNC nicht unterstÅtzte  Protokolle  ver-
+             wenden zu kînnen. KISS ist in vielen TNCs  implementiert,
+             ermîglicht aber auch die direkte Rechner-Kopplung.
+
+  SMACK      (DL5UE und DK5SG) ist die AbkÅrzung von 'Stuttgarts Modi-
+             fiziertes  Amateurfunk-CRC-KISS'  und erweitert  das  von
+             einer  fehlerfreien  öbertragung ausgehende KISS  um  ein
+             PrÅfsummenverfahren  (CRC),  wodurch   öbertragungsfehler
+             erkannt werden kînnen.
+
+  0x         Prefix von Hexadezimalzahlen (z.B. 0x300 = 300H)
+
+
+
+3. Neuerungen seit Version 2.00
+
+  - Der KISS-Mode wird inklusive SMACK fÅr bis zu 4 Ports und 57600
+    Baud unterstÅtzt (Option -PKISS). Fehlerhafte Frames (z.B. durch
+    Zeichenverluste) werden ignoriert und gezÑhlt (siehe Abschnitte
+    6.2.1. und 8.3.). Mittels TFPCX und KISS kann GP (DH1DAE) nun auch
+    mehrere TNCs parallel ansteuern.
+
+  - Die PA0HZP-OptoPcScc-Karte wird unterstÅtzt (Option -POSCC, siehe
+    Abschnitt 6.2.1.).
+
+  - Die BayCom-9k6-USCC-Karte funktioniert jetzt auch mit dem TFPCX
+    (Option -PUSCC, siehe Abschnitt 6.2.1.). Bei wenigen BayCom-USCC-
+    Karten wurden auf Grund von Timing-Problemen sinnlose Daten
+    gesendet. Durch eine andere Ansteuerung der SCC-Controller werden
+    diese Probleme umgangen.
+
+  - FÅr SCC-Karten und COM-Ports (bei KISS) kînnen AT-IRQs (9, 10, 11,
+    12, 14, 15) verwendet werden.
+
+  - Die Anzahl der freien Puffer (Option -BU) und der Connect-KanÑle
+    (Option -CH) und damit der benîtigte Speicherplatz sind nun
+    konfigurierbar. (Standard: 600 Puffer/10 KanÑle, siehe Abschnitt
+    6.2.3.)
+
+  - Die Initialisierungsdatei (Option -F) kann nun Leerzeilen und
+    Kommentare enthalten. ESC-Zeichen werden automatisch erzeugt und
+    brauchen nicht mehr als '^' angegeben zu werden. (siehe Abschnitt
+    6.2.3.)
+
+  - Beim DRSI-Interface (Option -DR) wurden InkompatiblitÑten mit dem
+    DRSI-TNCTSR-Treiber beseitigt, die bisher z.B. zu Problemen mit
+    Monitor und Heardlist beim Betrieb mit FBB (F6FBB) fÅhrten. Falls
+    es durch diese énderungen nun Probleme mit anderen Programmen gibt
+    (z.B. bei TOP), kann man mit der Option -DX das bisherige
+    (modifizierte) DRSI-Interface verwenden (siehe Abschnitt 6.2.2.).
+
+  - Der neue Befehl @PO ermîglicht die wahlweise Zuordnung eines Ports
+    zu einem Kanal, der dann nur von diesem Port aus connected werden
+    kann, was z.B. beim Programm TOP (DF8MT) nÅtzlich ist (siehe
+    Abschnitte 7.8. und 8.2.).
+
+  - Durch einen Transparent-Modus bei Empfang (Befehl @M) und
+    abschaltbares Zeichenecho (Befehl E) ist der #BIN#-Empfang im
+    Terminalmode (z.B. mit TERM (DL5FBD)) mîglich. (siehe Abschnitte
+    7.4. und 8.2.)
+
+  - Interne Connects (Loopback) lassen sich bei Bedarf verhindern
+    (Option -NL, siehe Abschnitt 6.2.3.).
+
+  - TXTAIL (Befehl @TA) wird bei seriellem Modem und SCC-Karte unter
+    BerÅcksichtigung von Baudrate und Timer-Ungenauigkeit optimal
+    eingestellt. Bisher gab es teilweise Probleme beim Betrieb mit 300
+    Baud.
+
+  - Wird die Option -P nicht angegeben, wird nun nicht mehr wie bisher
+    ein serielles Modem an COM1 benutzt, sondern Åberhaupt kein Port
+    angesteuert, was nur fÅr Testzwecke mit internen Connects sinnvoll
+    ist. Im Normalfall ist -P also immer anzugeben.
+
+  - Die Option -D (Debug) bezieht sich jetzt auf die letzte vor dem -D
+    stehende Option -P (Port). Damit ist die öberwachung beliebiger
+    Ports auch beim Multiport-Betrieb mîglich (siehe Abschnitt
+    6.2.3.).
+
+  - Disconnect im Hintergrundbetrieb bzw. Terminalmode ist mit Remote-
+    Kommando '//Q' mîglich. (Befehl U, siehe Abschnitt 8.2.)
+
+  - Durch eine DAMA-énderung (wie TF 2.6) sollten die bekannten
+    Meckermeldungen von TheNetNode-Digis bei Multiconnect nun kaum
+    noch auftreten.
+
+  - Der Extended Hostmode (DG3DBI) wird unterstÅtzt und ermîglicht
+    schnellere Kommunikation mit dem Terminalprogramm.
+
+  - Die Default-Werte fÅr die Parameter F, N, P, R, T, U, @A3, @I,
+    @T2, @T3, @T4 und @TA wurden geÑndert.
+
+
+
+4. Schnellstart
+
+  Auf  Grund verschiedener Konfigurationsmîglichkeiten  und  Terminal-
+  programme  lÑ·t  sich  kein allgemeines  Kochrezept  angeben.  Meist
+  reicht  es aus, wenn man sich zunÑchst die Abschnitte 6.2.1. und  7.
+  (entsprechend  verwendeten  Programm)  anschaut.  Gibt  es  Probleme
+  sollte man Anhang 2. lesen. FÅr den Betrieb mit mehreren Ports  sind
+  Abschnitt  8.1. und 8.2. wichtig. Im Abschnitt 8.3. werden  wichtige
+  Hinweise fÅr den KISS-Betrieb gegeben.
+
+  Wurde bei einer VorgÑngerversion keine '-P'-Option angegeben und der
+  Default-Port  COM1 verwendet, ist nun unbedingt die Option  '-PCOM1'
+  notwendig.
+
+  Falls bisher die Version 2.00 mit mehr als 10 KanÑlen benutzt wurde,
+  mu· die Option '-CHnn' beim Start von TFPCX angegeben werden,  wobei
+  nn die gewÅnschte Kanalanzahl ist.
+
+  Wenn  bisher die Option '-DR' verwendet wurde und damit  bei  dieser
+  Version Probleme mit Monitor oder Heardliste auftreten, dann  sollte
+  anstelle von '-DR' die Option '-DX' angegeben werden (z.B. bei TOP).
+
+  Wer bis jetzt mit Version 1.1x gearbeitet hat und auch weiterhin nur
+  ein  Modem  verwenden will, braucht lediglich die Option  '-C'  beim
+  Laden  von TFPCX angeben, wenn die Sende-/Empfangsanzeige  gewÅnscht
+  wird, da sie nun nicht mehr automatisch eingeschaltet wird. Wenn man
+  bisher die Option '-NC' angegeben hatte, ist diese zu streichen.
+
+  Mit  'TFPCX  -H' lassen sich alle Optionen in Kurzform  abrufen  und
+  'TFPCX -U' entfernt das TFPCX wieder aus dem Speicher.
+
+
+
+5. EinfÅhrung
+
+  Packet Radio wurde und wird vor allem mit sogenannten Terminal-Node-
+  Controllern  (TNC) betrieben, die die gesamte PR-spezifische  Proto-
+  kollabwicklung  (AX.25)  Åbernehmen und den benutzten  Computer  zum
+  komfortablen  DatensichtgerÑt  machen. Dabei sind TNCs  auch  nichts
+  anderes als einfache Rechner mit serieller Schnittstelle und  Modem.
+  Auf Grund der weiten Verbreitung einer speziellen vor allem auf  dem
+  TNC2 laufenden TNC-Software (WA8DED-Firmware oder die kompatible The
+  Firmware    von   NORD><LINK)   existieren    mittlerweile    einige
+  leistungsfÑhige  und weit verbreitete Programme, die  das  spezielle
+  Software-Interface dieser Firmware (WA8DED-Hostmode) verwenden.
+
+  Da  heutzutage auch leistungsfÑhige PCs nicht mehr sehr teuer  sind,
+  bietet es sich an, ihnen die Arbeit des TNCs zu Åbertragen und damit
+  die Investition fÅr den TNC einzusparen. Au·erdem ist ein  Portabel-
+  betrieb mit Laptop oder Notebook auch viel eleganter, wenn man nicht
+  einen  'grauen Kasten' zusÑtzlich mit sich herumschleppen  mu·.  FÅr
+  diesen  Zweck bietet seit einiger Zeit das BayCom-System  (Terminal,
+  Modem  oder  USCC-Karte)  eine schnelle,  billige  und  leicht  ver-
+  stÑndliche Lîsung. Allerdings ist BayCom ein abgeschlossenes System,
+  das den Betrieb der TNC-Terminalprogramme nicht unterstÅtzt.
+
+  An  dieser Stelle setzt das TFPCX an, da es die Verbindung  zwischen
+  der  vorhandenen Hardware (serielles Modem oder USCC-Karte) und  den
+  Terminalprogrammen  fÅr  TNCs  schafft.  Das  TFPCX  ist  eine   Art
+  speicheresidenter TNC der einmal in den PC geladen wird, es sich  im
+  Speicher  bequem  macht und dann stÑndig von den Interrupts  des  PC
+  angetrieben  im  Hintergrund  seine Arbeit  verrichtet,  also  Daten
+  sendet  und  empfÑngt  und auf Befehle des  Nutzers  reagiert.   Die
+  Daten-  und  Befehlsschnittstelle  zum  Terminalprogramm  (Software-
+  Interrupt)  ist dabei sehr Ñhnlich zu der bei TNCs  verwendeten  und
+  au·erdem  (was  wichtig ist) gut dokumentiert. Es  bereitet  deshalb
+  kaum Schwierigkeiten ein existierendes Programm mit dem TFPCX  lauf-
+  fÑhig  zu machen und fÅr die wichtigsten Programme ist dies  bereits
+  geschehen.
+
+  Wenn das TFPCX geladen ist, verhÑlt sich das System so, als wenn ein
+  TNC  angeschlossen  wÑre, kann also von au·en connectet  werden  und
+  speichert alle ankommenden Nachrichten. Da das TFPCX im  Hintergrund
+  lÑuft, kînnen nebenbei auch andere Programme verwendet werden  (Aus-
+  nahmen  siehe Anhang 2.2.). Auf ungelesene Informationen  macht  ein
+  blinkendes Rechteck in der rechten oberen Bildschirmecke aufmerksam.
+  Sobald das Terminalprogramm gestartet wird, erscheint der empfangene
+  Text auf den Bildschirm. TFPCX ist vergleichbar mit dem Programm  L2
+  (DL8MBT) des BayCom-Systems.
+
+  Das TFPCX dient nicht zum Betrieb mit TCP/IP-Software und lÑuft  nur
+  auf  IBM-kompatiblen  PCs.  TCP/IP kann man mit  dem  Packet  Driver
+  AX25DRV (SP9VRC) fÅr BayCom-kompatible Modems machen.
+
+
+
+6. Aufruf und Konfiguration
+
+  TFPCX wird durch folgende Befehlszeile aktiviert:
+
+  TFPCX [ -N ] [ <load options> | -T | -U ]
+
+  Alle  Optionen  werden durch '-' eingeleitet und  durch  Leerzeichen
+  voneinander getrennt. Innerhalb einer Option sind keine  Leerzeichen
+  zulÑssig. Gro·-/Kleinschreibung wird nicht unterschieden.  Bestimmte
+  Optionen  (z.B.  '-P') haben mehrere Parameter, die  durch  ein  ':'
+  getrennt  werden.  FÅr  ausgelassene  Angaben  werden  Standardwerte
+  eingesetzt.
+
+  Beispiel:
+
+  FÅr  '-PUSCC::5' wird '-PUSCC:300:5:1103' verwendet, indem  fÅr  die
+  fehlenden Werte 300 und 1103 eingesetzt wird.
+
+  Es  ist sinnvoll, das TFPCX aus einem Batch-File zu  starten,  damit
+  man nicht immer die gleichen Optionen schreiben mu·. ZunÑchst werden
+  alle  Optionen kurz in der Form aufgelistet, wie sie auch im  Hilfe-
+  Text  mit  'TFPCX -H' abrufbar sind  und  dann   einzeln  erlÑutert.
+  <load options> sind nur beim residenten Laden des TFPCX relevant und
+  gelten bis zum Entladen.
+
+  <general options>
+    -N no messages
+    -T terminal mode
+    -U unload
+
+  <load options>
+    -P<port>  attach packet port  -D  debug mode
+    -B<baud>  baud rate           -DM use DRSI messages
+    -F[file]  read init file      -DR emulate DRSI driver
+    -C[xx]    show DCD [color]    -DX modified DRSI interface
+    -Ixx      TFPCX interrupt     -NB no blinking rectangle
+    -BU[nnnn] number of buffers   -ND no disk access if DCD
+    -CHnn     number of channels  -NL no loopback
+
+  <port>  COMn[:xxx] | LPTn[:xxx] | KISSn[:xxx:nn] | <scc>[:xxx:nn:nnnn]
+          1-4^  ^addr  1-4^  ^addr   1-4^addr^ ^IRQ     addr^ IRQ^ ^<clock>
+  <scc>   OSCC | USCC
+  <clock> 0 = disable    2 = hardclock    4 = PA0HZP port  (1 digit/
+          1 = softclock  3 = DF9IC modem  5 = PA0HZP timer  channel)
+  <baud>  nnnn[:nnnn ...] (1 number/port)
+
+
+  []  Angabe ist optional
+  |   alternative Angabe
+  x   Hexadezimalziffer
+  n   Dezimalziffer
+
+
+6.1. Allgemeine Optionen
+
+  Diese  Optionen kînnen zusammen mit jeder anderen  Option  verwendet
+  werden. Es gibt im Augenblick nur eine:
+
+-N  Nachrichten unterdrÅcken
+
+  Falls  die Nachrichten des Programms stîren (z.B.  in  Batch-Files),
+  kînnen  sie hiermit unterdrÅckt werden.  Fehlermeldungen  erscheinen
+  aber weiterhin.
+
+
+6.2. Optionen zum residenten Laden
+
+  Das  TFPCX  wird immer dann resident in den Speicher  geladen,  wenn
+  keine der Optionen '-T' oder '-U' angegeben ist und es nicht  selbst
+  oder  der TFPCR- oder DRSI-TNCTSR-Treiber bereits  aktiviert  wurde.
+  Wenn man also mehrere Treiber zusammen verwenden will, mu· das TFPCX
+  immer   als  erstes  aufgerufen  werden.  Ich  kann   jedoch   nicht
+  garantieren, da· man auf diese Weise auch problemlos arbeiten kann.
+
+  Das TFPCX kann auch mit LOADHIGH in den oberen Speicherbereich (UMB)
+  geladen  werden, wenn dort genug Speicher frei ist. Allerdings  gibt
+  es  teilweise  Probleme  mit den  dazu  notwendigen  EMM386-Treibern
+  (siehe Anhang 2.1.).
+
+  Um  das  TFPCX  an  verschiedene  Packet-Hardware,   öbertragungsge-
+  schwindigkeiten,  Terminalprogramme  und NutzerwÅnsche  anpassen  zu
+  kînnen, existieren die hier behandelten Optionen.
+
+  Nach dem Laden erscheint z.B. die Meldung
+
+  ⁄ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒø
+  ≥ TFPCX v2.10  (Nov 20 1993) by DG0FT ≥
+  ≥     TF v2.3b DAMA by NORD><LINK     ≥
+  ≥    Free for non-commercial usage    ≥
+  √ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ¥
+  ≥ 5 Port(s), 10 Channels, TFPC-Int FD ≥
+  √ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ¥
+  ≥ 0: COM1 (3F8/00),  1200 Bd, MODEM   ≥
+  ≥ 1: SCC0 (300/07),  1200 Bd, SOFTCLK ≥
+  ≥ 2: SCC1 (301/07),  1200 Bd, SOFTCLK ≥
+  ≥ 3: SCC3 (303/07),  9600 Bd, DF9IC   ≥
+  ≥ 4: COM2 (2F8/03),  9600 Bd, KISS    ≥
+  ¿ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒŸ
+
+  und  das  DOS-Prompt. TFPCX ist jetzt installiert und  belegt  einen
+  Teil des Hauptspeichers. Im unteren KÑstchen wird fÅr jeden Port die
+  Nummer,  die  Schnittstelle,  die Adresse und  evtl.  der  IRQ,  die
+  Baudrate und die Art des angeschlossenden Modems ausgegeben.
+
+
+6.2.1. Port- und Baudraten-Konfiguration
+
+-P  Angabe der benutzten Ports
+
+  Diese  Option kann mehrfach verwendet werden und zwar maximal 2  mal
+  fÅr serielle Modems, 1 mal fÅr SCC-Karten und 4 mal fÅr  KISS-Ports,
+  wenn  dabei  nicht die Obergrenze von 8  Ports  Åberschritten  wird.
+  Besonders bei seriellen Modems ist die Belastung des Rechners  durch
+  mehrere Ports nicht zu unterschÑtzen.
+
+  Die Vergabe der Portnummern, erfolgt in der Reihenfolge, in der  die
+  Ports auf der Kommandozeile angegeben werden, wobei die  Reihenfolge
+  der SCC-Ports fest ist. Die obige Meldung erscheint beim Aufruf:
+
+  TFPCX -PCOM1 -PUSCC -PKISS2
+
+  Wird die Option '-P' Åberhaupt nicht angegeben, wird auch kein  Port
+  angesteuert, was nur fÅr Tests mit internen Connects sinnvoll ist.
+
+  Die optional mîglichen Portadressen mÅssen im Bereich von 0x100  bis
+  0x3F8  liegen  und durch 8 teilbar sein. Bei SCC und KISS  sind  die
+  IRQs  2-5, 7, 9-12 und 14-15 mîglich (bei XTs nur IRQs  kleiner  8).
+  ATs haben keinen wirklichen IRQ 2. Anstelle dessen wird deshalb  IRQ
+  9 verwendet. Jede Schnittstelle mu· einen eigenen IRQ haben.
+
+-PCOMn oder -PLPTn  Modem an COMn bzw. LPTn (n = 1-4)
+
+  Die Basisadresse des Portes wird dem BIOS-Datenbereich entnommen und
+  mu·  dort eingetragen sein. Manche BIOS-Versionen vergessen das  bei
+  COM3   und COM4. In diesem  Fall lÑ·t  sich die Adresse in der  Form
+  '-P<Port>:xxx' auch explizit setzen.
+
+  Beispiel:
+
+  TFPCX -PCOM3:338
+
+  Mit  diesem  Aufruf  wird ein Modem an  COM3  verwendet,  wobei  als
+  Basisadresse  die  0x338 verwendet wird. Diese Adresse mu·  man  der
+  Schnittstellenbeschreibung  entnehmen. Die Nummer der  Schnittstelle
+  (hier also die 3) wird ignoriert, wenn eine Adresse angegeben  wird,
+  mu· aber trotzdem zwischen 1 und 4 liegen. Der IRQ der Schnittstelle
+  ist fÅr TFPCX uninteressant und wird nicht benutzt.
+
+  Werden  2 Modems verwendet sollte man zuerst den Port  angeben,  den
+  man am hÑufigsten benutzt, da dieser evtl. etwas bevorzugt wird.  Es
+  versteht  sich von selbst, da· andere Programme nicht  auf  Schnitt-
+  stellen zugreifen dÅrfen, die vom TFPCX verwendet werden.
+
+-PUSCC:<Base>:<IRQ>:<Modems>  BayCom-USCC-Karte verwenden
+-POSCC:<Base>:<IRQ>:<Modems>  PA0HZP-OptoPcScc-Karte verwenden
+
+  Als Parameter wird die Basisadresse der SCC-Karte, der IRQ und  eine
+  maximal  4 stellige Ziffernfolge angegeben, die Åber die Art der  an
+  den  bis  zu  4 SCC-Ports  angeschlossenden  Modems  Auskunft  gibt.
+  Folgende Angaben sind mîglich (siehe auch Anhang 3.2.):
+
+  0  Disable       Port wird nicht benutzt (abgeschaltet)
+
+  1  Softclock     Takt fÅr Senden und Empfang wird intern erzeugt fÅr
+                   AFSK-Modems (kein Duplex mîglich)
+
+  2  Hardclock     Sendetakt wird vom Modem geliefert, Empfangstakt
+                   wird intern erzeugt (z.B. G3RUH)
+
+  3  DF9IC-Modem   Takt fÅr Senden und Empfang wird vom Modem
+                   geliefert, NRZ-Mode
+
+  4  PA0HZP-Port   Empfangstakt wird intern erzeugt, extern durch 32
+                   geteilt und dem SCC-Controller als Sendetakt wieder
+                   zugefÅhrt (fÅr OptoPcScc-Karte)
+
+  5  PA0HZP-Timer  Port wird nicht benutzt, erzeugt aber einen Zeit-
+                   takt fÅr Timing-Zwecke (nur fÅr OptoPcScc-Karte)
+
+  Die Modemtypen 1 bis 3 sind speziell fÅr die USCC-Karte  vorgesehen,
+  wÑhrend Typ 4 nur mit der OptoPcScc-Karte funktioniert.
+
+  Ziffer  5 hat eine besondere Bedeutung. Das TFPCX benîtigt  fÅr  die
+  verschiedenen internen Timer einen Zeittakt, der von der  OptoPcScc-
+  Karte jedoch nicht geliefert wird. Deshalb wird der Systemtimer  des
+  PC   verwendet,  der  aber  nur  eine  recht  ungenaue   Zeitmessung
+  ermîglicht,  was  bei einigen Parametern (z.B. TXDELAY  und  TXTAIL)
+  problematisch   ist.  Das  TFPCX  bietet  die   Mîglichkeit,   einen
+  ungenutzten  SCC-Port zur Generierung eines genaueren Zeittaktes  zu
+  verwenden,  was  auch unbedingt zu empfehlen ist,  wenn  nicht  alle
+  Ports benîtigt werden.
+
+  Beispiele:
+
+  TFPCX -PUSCC:300:7:1103
+
+  Basisadresse  0x300,  IRQ 7, USCC-Ports 0 und 1  mit  Softclock  fÅr
+  normale  AFSK-Modems (Ziffer 1), Port 2 ist abgeschaltet (Ziffer  0)
+  und  Port  3  mit  DF9IC-Modem (Ziffer 3).  Das  ist  die  Standard-
+  einstellung, wenn nur '-PUSCC' angegeben wird.
+
+  TFPCX -PUSCC:300:7:31
+
+  USCC-Port  0  mit DF9IC-Modem, Port 1 mit Softclock, Ports 2  und  3
+  abgeschaltet.  Diese Einstellung ist fÅr die  9k6-USCC-Karte  nîtig,
+  die nur 2 SCC-Ports bietet. Wird gar kein Modem-Takt angegeben  gilt
+  '1103'  (wie  oben), erfolgt jedoch eine Angabe mit  weniger  als  4
+  Ziffern gilt fÅr den Rest '0'.
+
+  TFPCX -POSCC:150:3:4445
+
+  OptoPcScc-Karte  mit Basisadresse 0x150, IRQ 3, Port 0 bis 2  werden
+  als  Modemports mit externem Taktteiler benutzt, Port 3 erzeugt  den
+  Zeittakt. Dies ist die Standardeinstellung fÅr '-POSCC' ohne weitere
+  Parameter.
+
+-PKISSn:<Base>:<IRQ>  KISS-Port an COMn (n = 1-4)
+
+  Die  Basisadresse <Base> wird automatisch ermittelt, kann  aber  bei
+  Bedarf auch manuell angegeben werden. IRQ 4 wird standardmÑssig  fÅr
+  COM1  und 3 verwendet, IRQ 3 fÅr COM2 und 4. Stimmt diese  Zuordnung
+  nicht, mu· der IRQ angegeben werden.
+
+  Beispiele:
+
+  TFPCX -PKISS1
+
+  KISS-Port an COM1, Basisadresse und IRQ wird automatisch  ermittelt.
+  FÅr COM1 und 2 reicht diese Angabe im Allgemeinen aus.
+
+  TFPCX -PKISS3:338:5
+
+  KISS-Port an COM3, Basisadresse 0x338, IRQ 5
+
+-Bnnnn[:nnnn ...]  Baudrate je Port einstellen
+
+  Bei mehreren Ports werden durch ':' getrennte Werte angegeben in der
+  Reihenfolge steigender Portnummern. Folgende Werte sind mîglich:
+
+                                                       Standard
+
+  serielles Modem   300, 1200, 2400 oder 4800 Baud       1200
+
+  SCC Softclock     50-38400 Baud                        1200
+      PA0HZP-Port   50-38400 Baud                        1200
+      Hardclock     50-38400 Baud                        9600
+      DF9IC-Modem    1-65535 Baud (ohne Bedeutung)       9600
+
+  KISS              2400, 4800, 9600, 19200,             9600
+                    38400 oder 57600 Baud
+
+  Beim  seriellen  Modem  und bei KISS sind nur  die  genannten  Werte
+  mîglich, bei SCC auch Zwischenwerte. Bei Hardclock mu· der vom Modem
+  gelieferte Sendetakt mit dem angegebenen Åbereinstimmen, beim DF9IC-
+  Modem  ist der Wert bedeutungslos, da der Takt extern erzeugt  wird,
+  man  sollte aber trotzdem den richtigen Wert angeben, weil  er  z.B.
+  beim Befehl 'P' angezeigt wird.
+
+  Beispiel:
+
+  TFPCX -PCOM1 -PUSCC:::1003 -B300:1200:19200
+
+  Modem an COM1 mit 300 Baud, USCC-Port 0 mit Softclock und 1200  Baud
+  und USCC-Port 3 mit DF9IC-Modem und 19200 Baud.
+
+  Welche  Baudrate  auf  einem  PC  mîglich  ist,  hÑngt  von   seiner
+  Rechenleistung  ab (siehe auch Tabelle im Anhang 2.1.). Bei  Betrieb
+  eines  seriellen  Modems mit 300 Baud weicht die  Systemuhr  in  der
+  Stunde um eine halbe Minute ab.
+
+
+6.2.2. TFPC- und DRSI-Interface
+
+  Das  TFPCX  bietet zur Kommunikation mit dem  Terminalprogramm  vier
+  verschiedene Varianten, von denen je nach verwendeten Programm  eine
+  ausgewÑhlt  werden  mu·. FÅr Programmierer ist der  Aufruf  und  die
+  ParameterÅbergabe im Anhang 4.1. genau beschrieben.
+
+  Das  TFPC-Interface wurde von Sigi (DL1MEN) fÅr seinen  KISS-Treiber
+  TFPCR entwickelt und wird inzwischen von einer Reihe von  Programmen
+  unterstÅtzt (z.B. SP, GP, THP, TERM, DIEBOX). Dies ist deshalb  auch
+  das  Standard-Interface des TFPCX. Der Nachteil dieser Variante  ist
+  die   eingeschrÑnkte  Multiport-FÑhigkeit,  da  die   öbergabe   von
+  Portnummern  (z.B.  des  Ports auf dem man  connectet  wurde)  nicht
+  mîglich ist. Damit erscheinen Connects und Monitor-Frames so, als ob
+  alles  auf  einer Frequenz abliefe. FÅr alle, die   nur  einen  Port
+  benutzen ist diese Variante auch weiterhin zu empfehlen.
+
+-DR  DRSI-Interface benutzen
+
+  Dieses  Interface  verwendet  der  zum  DRSI-PCPA-Adapter  gehîrende
+  TNCTSR-Treiber.   Nachdem  das  TFPCX  nun   den   Multiport-Betrieb
+  unterstÅtzt   mu·te  eine  Mîglichkeit  gefunden  werden,  um   eine
+  Unterscheidung  der  benutzten Ports durch das  Terminalprogramm  zu
+  ermîglichen. DafÅr bot sich diese Variante an, da sie bereits von SP
+  und  FBB voll unterstÅtzt wird. Der Unterschied  zum  TFPC-Interface
+  besteht  vor allem in der öbergabe von Portnummern bei  Link-Status-
+  Meldungen  und  Monitor-Informationen. Diese  Option  bewirkt  keine
+  hardwaremÑssige UnterstÅtzung des DRSI-PCPA-Adapters.
+
+-DX  Modifiziertes DRSI-Interface benutzen
+
+  Diese  Option entspricht der Option '-DR' des TFPCX v2.0x. Dort  gab
+  es  InkompatibilitÑten  mit dem TNCTSR-Treiber  bei  Verwendung  des
+  DRSI-Interfaces,  die  bei dieser Version  beseitigt  wurden.  Falls
+  diese  énderungen  nun bei anderen Programmen  (z.B.  TOP)  Probleme
+  verursachen,  sollte die Option '-DX' anstelle von  '-DR'  angegeben
+  werden.
+
+-DM  Modifiziertes TFPC-Interface benutzen
+
+  Diese Variante ist fÅr den Multiport-Betrieb mit Programmen gedacht,
+  die  bisher nur das TFPC-Interface verwenden kînnen. Es liefert  die
+  gleichen  Meldungen, wie das DRSI-Interface (also  mit  Portnummern)
+  benutzt aber den 'herkîmmlichen' TFPC-Interrupt. Die Nutzung  dieser
+  Variante ist ein Kompromi·. Bei manchen Programmen (z.B. TERM)  gibt
+  es  damit  keine Probleme, andere Terminals zeigen  die  Portnummern
+  zwar  meist  richtig  an, es gibt  aber  'Nebeneffekte'  und  einige
+  Programme  (z.B. THP) kommen mit den Portnummern gar nicht klar.  Am
+  besten  mal  mit  und mal ohne Option  '-DM'  probieren  und  darauf
+  hoffen,  da· die Entwickler der entsprechenden Programme  vielleicht
+  eine Multiport-UnterstÅtzung realisieren. Bei GP ist dies inzwischen
+  geschehen.
+
+  ACHTUNG!
+
+  Bitte  nicht  die Entwickler der Terminalprogramme (oder  mich)  mit
+  Nachrichten  ÅberhÑufen,  wenn bei Nutzung von  '-DM'  irgend  etwas
+  durcheinander kommt. Diese Option ist ein Kompromi· und bewirkt  bei
+  einigen Programmen evtl. eigenartige Effekte.
+
+
+6.2.3. Sonstige Optionen
+
+-BU[nnnn]  Anzahl der TFPCX-Puffer
+
+  Das TFPCX speichert die meisten Daten dynamisch in 32  Byte-Puffern.
+  Die  Anzahl  der  benîtigten Puffer kann  je  nach  Verwendung  sehr
+  unterschiedlich  sein.  Hat das TFPCX nur wenige Puffer  kînnen  nur
+  wenige  Frames  zwischengespeichert  werden  und  man  erhÑlt  unter
+  UmstÑnden  'TNC BUSY'-Meldungen, was meist zum Disconnect durch  das
+  Terminalprogramm   fÅhrt.  Zu  viele  Puffer  verschwenden   dagegen
+  Speicherplatz.
+
+  Mit  dieser Option kann die Pufferanzahl zwischen 400 und  ca.  1500
+  konfiguriert werden. Der Maximalwert hÑngt von der benutzten  Kanal-
+  anzahl  ab  und  wird eingestellt, wenn die  Option  ohne  Parameter
+  angegeben wird.
+
+  Meist ist der Standardwert von 600 Puffern ausreichend. Wenn man mit
+  vielen KanÑlen arbeitet, Gateway-Funktionen benutzt, vielleicht eine
+  Mailbox betreibt oder grî·ere Dateien auf schnellen  Digi-Einstiegen
+  aussendet  ist eine Erhîhung dieses Wertes sinnvoll. Bei  SP  (au·er
+  v7.50) sollte man nicht mehr als 999 Puffer wÑhlen (siehe  Abschnitt
+  7.1.).  Wenn  man  sehr wenig Speicher hat  kann  auch  mit  weniger
+  Puffern gearbeitet werden.
+
+-CHnn  Anzahl der Connect-KanÑle
+
+  Bisher  war  die  Anzahl  der  vom  TFPCX  verwalteten  KanÑle  fest
+  eingestellt,  was  Speicherplatz und  Rechenzeit  verschenkte,  wenn
+  diese  Anzahl  gar nicht benutzt wurde. Mit dieser Option  kann  die
+  Kanalanzahl  dem  Verwendungszweck angepa·t werden.  Es  sollte  der
+  gleiche  Wert wie beim verwendeten Terminalprogramm gewÑhlt  werden.
+  Mîglich sind 4 bis 40 KanÑle (Default 10).
+
+-C[xx]  Sende-/Empfangsanzeige einschalten
+
+  Bewirkt  im  Hostmode die Anzeige des Sende-/Empfangsstatus  in  der
+  rechten  oberen  Bildschirmecke ('S' fÅr Senden, 'R'  fÅr  Empfang).
+  Wenn  mehrere  Ports benutzt werden, erfolgt die Anzeige  fÅr  jeden
+  Port  getrennt, wobei der Port 0 ganz links steht. Bei KISS  bezieht
+  sich die Anzeige auf die Verbindung zwischen PC und TNC. Die Anzeige
+  funktioniert   nur  im  Textmode  und  kann  mit  einem   bestimmten
+  Farbattribut erfolgen, das dann hexadezimal anzugeben ist.
+
+  Beispiel:
+
+  TFPCX -C17
+           ^ Schrift     (hier Wei·)
+          ^  Hintergrund (hier Blau)
+
+  Nummern der Farbattribute:
+
+  0 Schwarz  4 Rot      8 Dunkelgrau  C Hellrot       Monochrom:
+  1 Blau     5 Magenta  9 Hellblau    D Hell-Magenta
+  2 GrÅn     6 Braun    A HellgrÅn    E Gelb          07 Normal
+  3 Zyan     7 Wei·     B Hell-Zyan   F Hellwei·      70 Invers
+                        ^             ^
+                      nur als Schriftfarbe
+
+-F<File>  Datei zur Parametereinstellung (ohne <File> gilt TFPCX.INI)
+
+  Bei Verwendung dieser Option (und nur dann!) wird die Datei  wÑhrend
+  der Initialisierung gelesen und im Terminalmode zeichenweise an  die
+  Firmware   gesendet,  um  eine  Voreinstellung  der   Parameter   zu
+  ermîglichen.   Normalerweise  kann  diese  Option  entfallen,   weil
+  Terminalprogramme  selbst eine Initialisierung vornehmen. Die  Datei
+  wird im aktuellen Verzeichnis gesucht, wenn kein Pfadname  angegeben
+  wird.
+
+  Die  Datei kann mit einem normalen Editor erstellt werden  und  kann
+  Kommentare  (eingeleitet  durch '#' oder ';')  und  Leerzeilen  ent-
+  halten.  Vor  jedem  Befehl  wird  automatisch  ein   Escape-Zeichen
+  gesendet.  Das  bisher  notwendige Zeichen '^'  braucht  nicht  mehr
+  angegeben  zu werden und wird ignoriert, so da· alte Dateien  weiter
+  verwendet   werden  kînnen.  Tabulatoren  werden   wie   Leerzeichen
+  behandelt  und am Zeilenanfang/-ende Åberlesen. Eine  Beispiel-Datei
+  ist im Archiv enthalten.
+
+-Ixx  Software-Interrupt fÅr TFPCX-Interface (40-FF)
+
+  öber   den   hier   angegebenen   Software-Interrupt   findet    die
+  Kommunikation   zwischen  TFPCX  und  dem  Terminalprogramm   statt.
+  StandardmÑ·ig  wird der Interrupt 0xFD verwendet. Eine énderung  ist
+  nur nîtig, wenn dieser Vektor von anderen Programmen verwendet  wird
+  oder ein Programm nur mit einer bestimmten Einstellung  funktioniert
+  (z.B. '-IFF' bei CT (K1EA) und FBB).
+
+-NB  Statusblinken ausschalten
+
+  Wenn TFPCX ungelesene Informationen oder Statusmeldungen gespeichert
+  hat und nicht im Hostmode ist (also im Hintergrund lÑuft) blinkt  in
+  der  rechten oberen Bildschirmecke ein Rechteck, das z.B. auf  einen
+  neuen  Connect aufmerksam macht. Man kann nun  das  Terminalprogramm
+  starten und auf den Connect reagieren. Dies funktioniert  allerdings
+  nicht,  wenn  man aus dem Terminal eine DOS-Shell  aufruft  und  das
+  TFPCX  dabei (wie z.B. bei SP) im Hostmode bleibt. Das Blinken  kann
+  mit dieser Option unterdrÅckt werden.
+
+-ND  Disk-Zugriffe bei Senden/Empfang verzîgern (Notbehelf)
+
+  Falls  man Empfangsprobleme bei Disk-Zugriffen hat  (Packete  werden
+  nicht einwandfrei dekodiert) kann man mit dieser Option  verhindern,
+  da·  ein Diskzugriff durchgefÅhrt wird  wÑhrend ein  Signal  anliegt
+  (auch  bei  SCC, nur im Hostmode). Das fÅhrt jedoch zu  einem  etwas
+  'ungewohnten'  Verhalten, weil der Rechner dann so lange  zu  hÑngen
+  scheint,  bis  die  QRG wieder frei ist.  Man  sollte  diese  Option
+  deshalb nur im Notfall verwenden. Wenn mit Soft-DCD gearbeitet  wird
+  mu· der Befehl '@C' bereits beim Laden des TFPCX mit der Option '-F'
+  aus einem Init-File ausgefÅhrt werden.
+
+-NL  Interne Connects (Loopback) ausschalten
+
+  Im  Normalfall werden alle gesendeten Frames so behandelt, als  wenn
+  sie  auch  empfangen  worden wÑren,  wodurch  interne  Connects  fÅr
+  Testzwecke  mîglich  sind.  In einigen  FÑllen  ist  das  allerdings
+  unerwÅnscht (z.B. bei Tests mit externem Loopback) und kann  deshalb
+  mit  dieser Option verhindert werden. Bei hohem Datenaufkommen  lÑ·t
+  sich  auf diese Weise auch die Belastung des Rechners etwas  senken,
+  da die gesendeten Frames dann nicht doppelt behandelt werden mÅssen.
+
+-D  Test Modus (Debug)
+
+  Diese Option bezieht sich auf die in der Kommandozeile vor dem  '-D'
+  stehende '-P'-Option und aktiviert fÅr den (die) zugehîrigen Port(s)
+  einen  Test Modus, der bei jedem Interrupt einen  Flankenwechsel  am
+  Eingang  des Lautsprechers bewirkt und damit ein Knacken oder  einen
+  Ton erzeugt.
+
+  Der Test Modus dient vor allem zur Ursachenforschung bei Sende-  und
+  Empfangsproblemen  beim Modembetrieb (siehe Anhang 2.1.).  Hier  mu·
+  bei  1200 Baud ein 1800 Hz-Ton zu hîren sein (Baudrate *  1.5).  Der
+  Ton sollte halbwegs sauber und ohne Unterbrechungen sein.  Geprassel
+  entsteht,  wenn  der Interrupt verzîgert wird. Ertînt  ein  einziges
+  Prasseln  oder gibt es Unterbrechungen ist der Rechner  Åberfordert.
+  Die  Grenze  ist  hier allerdings schwer zu  ziehen,  ein  'gewisses
+  Grundrauschen' mu· die Funktion noch nicht beeintrÑchtigen.
+
+  Bei  KISS  oder  einer SCC-Karte kann mit  dieser  Option  ÅberprÅft
+  werden, ob Åberhaupt Interrupts erzeugt werden. Diese kînnen stÑndig
+  oder nur im Sende-/Empfangsfall auftreten.
+
+  Steht '-D' vor dem ersten '-P', so knackt es im Takt der Systemuhr.
+
+
+6.3. TFPCX aus dem Speicher entfernen
+
+  Mit  dem Befehl 'TFPCX -U' lÑ·t sich TFPCX wieder aus  dem  Speicher
+  entfernen.
+
+
+6.4. Terminalmode
+
+  Mit  'TFPCX -T' wird ein einfaches Terminalprogramm  gestartet,  mit
+  dem  man  auch  ohne zusÑtzliche  Terminal-Software  arbeiten  kann.
+  Vorher  ist das TFPCX resident zu laden (wie oben beschrieben).  Man
+  mu· das Programm also zweimal mit verschiedenen Parametern aufrufen,
+  um in den Terminalmode zu gelangen.
+
+  Mit ALT-X wird das Terminalprogramm verlassen. Vorher sollte man mit
+  ESC  'MN' den Monitor abschalten, wenn er aktiviert war, weil  sonst
+  unnîtiger Pufferspeicher verbraucht wird, und beim eventuellen Start
+  eines Hostmode-Programms Probleme entstehen.
+
+
+
+7. Installation
+
+  Dieser  Abschnitt gibt Hinweise zur Installation  einiger  Programme
+  fÅr  den  Betrieb mit TFPCX. GrundsÑtzlich mu· das  TFPCX  aktiviert
+  werden  bevor  das Terminalprogramm gestartet  wird.  Au·erdem  sind
+  meist  noch bestimmte  Einstellungen in  Konfigurationsdateien  oder
+  -MenÅs  notwendig.  Dagegen  sind  z.B.  Baudraten-Einstellungen  in
+  diesen  Dateien/MenÅs fÅr den TFPCX-Betrieb meist  belanglos,  dafÅr
+  ist die Option '-B' beim Aufruf des TFPCX verantwortlich.
+
+  Bei  einigen  Programmen  gibt es  Probleme  beim  Multiport-Betrieb
+  (Option  '-DM').  In  diesem Fall mu· diese  Option  und  damit  die
+  Anzeige  von  Portnummern  entfallen.  Bei  Befehlen  ist  aber  die
+  Portangabe  und  damit der Multiport-Betrieb trotzdem  mîglich.  Man
+  sieht  blo· nicht, von wo man connectet wird oder auf  welchem  Port
+  ein  Monitor-Frame  empfangen wurde. Bei diesen Programmen  ist  die
+  Verwendung des Befehls '@PO' (siehe Abschnitt 8.2.) sinnvoll.
+
+  Man sollte beachten, da· das TFPCX einen Teil des Speichers  belegt,
+  der  dem  Terminalprogramm dann nicht zur VerfÅgung  steht.  Deshalb
+  mÅssen  bestimmte  Puffergrî·en und die  Anzahl  der  Connect-KanÑle
+  unter UmstÑnden verringert werden.
+
+
+7.1. SP (DL1MEN)
+
+  Je nach Portanzahl ergeben sich 2 Varianten:
+
+  Will man nur einen Port benutzen bietet sich das TFPC-Interface  an,
+  das   ab  SP  v5.00  unterstÅtzt  wird.  SP  wird  in  diesem   Fall
+  entsprechend SP-Manual oder mit dem INSTALL-Programm fÅr TFPCX (oder
+  TFPCR)-Betrieb installiert. Die Datei CONFIG.SP (frÅher SP.CFG)  mu·
+  die  Zeile  'CFG=PORT0:5H' enthalten. Im Betrieb gibt es  hier  kaum
+  Unterschiede zwischen TFPCX und TFPCR.
+
+  FÅr  Multiport-Betrieb sollte man das DRSI-Interface verwenden.  Die
+  Datei  CONFIG.SP  mu· dafÅr die Zeile 'CFG=PORT0:DH'  enthalten  und
+  TFPCX  wird mit der Option  '-DR' gestartet. Ansonsten  braucht  man
+  sich  sich nur daran orientieren, was im SP-Manual zur  Installation
+  und zum Betrieb mit dem DRSI-PCPA-Adapter gesagt wird, es trifft  in
+  diesem  Fall  zum gro·en Teil auch auf das TFPCX zu,  mit  folgenden
+  Besonderheiten:
+
+  - SP-Befehle 'DR' und 'HB' funktionieren nicht, die Parameter werden
+    mit  den normalen TNC-Befehlen eingestellt mit zusÑtzlichen  Port-
+    angaben (siehe Abschnitt 8.1.)
+
+  - Die  im  Abschnitt  8.1. beschriebene  Portauswahl  bei  fehlender
+    Portangabe klappt leider bei einigen Befehlen nicht, da sie SP  an
+    den  Monitor-Kanal  0  und  nicht  an  den  aktuell  eingestellten
+    Connect-Kanal sendet, im Zweifelsfall deshalb immer die Portnummer
+    angeben
+
+  - Befehle  'TP'  und  '//par' zeigen die  richtige  Baudrate  (keine
+    Nummer) an
+
+  Beim  DRSI-Betrieb verwaltet SP fÅr jeden der maximal 8  Ports  eine
+  extra  QRG,  au·er  auf  dem  Monitor-Kanal.   Die  Port-Umschaltung
+  erfolgt z.B. durch ESC 'C 1:', auf dem Monitor-Kanal wird damit  der
+  Unproto-Port  gewÑhlt. Der eingestellte Default-Port wird bei  einem
+  Connect-Befehl automatisch ergÑnzt, kann aber auch direkt  angegeben
+  werden.
+
+  Das TFPCX kann auch parallel mit TNCs im Hostmode verwendet  werden.
+  Wie  gut  das  funktioniert  ist  vor  allem  vom  benutzen  Rechner
+  abhÑngig.
+
+  Bei  SP v6.00 oder frÅher flankert die QRG-Anzeige evtl.  etwas  und
+  der Connect-Gong klingt anders als beim TNC-Betrieb. Das ist  normal
+  und kein Grund zur Sorge.
+
+  Bei  einigen frÅhen Versionen von SP v7.00 gibt es durch  einen  Bug
+  evtl.  Probleme beim Modembetrieb. Ein anderes Problem  ergibt  sich
+  bei  dieser  SP-Version, wenn man 2 Modems und  einen  TNC  parallel
+  verwenden  will  (kommt  sicher  selten vor)  und  dabei  das  DRSI-
+  Interface benutzt. Beim Start von SP erhÑlt man sofort eine  Resync-
+  Meldung und ein Betrieb ist nicht mîglich. Dieses Problem kann durch
+  einen Patch der SP.EXE beseitigt werden.
+
+  Wenn  man SP v7.00 (evtl. auch frÅhere Versionen) verwendet,  sollte
+  man  nicht mehr als 999 TFPCX-Puffer reservieren (Option '-BU'),  da
+  SP  scheinbar nicht mit 4-stelligen Pufferzahlen zurecht  kommt  und
+  sonst  das Senden von Dateien sehr schleppend ablÑuft. Bei SP  v7.50
+  wurde dieses Problem behoben.
+
+
+7.2. GP (DH1DAE)
+
+  GP  benutzt das TFPCX automatisch, wenn es geladen ist,  weshalb  im
+  Normalfall  keine  extra Konfiguration nîtig  ist.  Beim  Multiport-
+  Betrieb sind allerdings folgende Hinweise zu beachten:
+
+  - Es  mu·  unbedingt GP ab Version 1.50  verwendet  werden.  FrÅhere
+    Versionen  sind  nur mit einem Port komfortabel zu  betreiben  und
+    haben auch Probleme bei hîheren öbertragungsraten.
+
+  - TFPCX wird mit der Option '-DM' gestartet.
+
+  - In  der  Datei NAMES.GP ist mindestens  ein  PORT-Befehl  zwingend
+    erforderlich, weil Connect-Versuche sonst mit einer  Fehlermeldung
+    abgebrochen werden (siehe GP.DOC).
+
+    Beispiel:
+
+    PORT0 = DB0BLN,438.450
+    PORT1 = DB0BLO,438.300
+
+  Mit  Hilfe  des TFPCX kann GP nun auch mehrere TNCs  ansteuern,  die
+  dazu den KISS-Mode unterstÅtzen mÅssen (siehe Abschnitt 8.3.).
+
+
+7.3. THP (DL1BHO)
+
+  THP  unterstÅtzt  das TFPC-Interface (getestet mit  v3.03).  In  der
+  Datei  CONFIG.PR mu· im Abschnitt 'TNC-Konfiguration' fÅr das  TFPCX
+  die Schnittstellennummer '5' angegeben werden. Im File CMD.PR werden
+  standardmÑ·ig  einige  Befehle aufgerufen, die beim TFPCX  zu  einer
+  Fehlermeldung  fÅhren  (z.B. 'A' und 'Z'). Am besten ein  '#'  davor
+  setzen (Kommentar).
+
+  Multiport-Betrieb mit der Option '-DM' bringt keine Vorteile, da die
+  Portnummern nicht richtig angezeigt werden.
+
+
+7.4. TERM (DL5FBD)
+
+  Diese  TFPCX-Version arbeitet mit TERM ab v9.71 am besten  zusammen.
+  FrÅhere TERM-Versionen benutzen ein anderes Verfahren zum Sendehand-
+  shake, das vom TFPCX nicht mehr unterstÅtzt wird.
+
+  Wenn man mehrere Ports  verwendet, sollte TFPCX mit der Option '-DM'
+  geladen werden, sonst ohne. Da TERM die TFPCX-Meldungen nicht selbst
+  verarbeitet, gibt es keine Probleme mit den Portnummern.
+
+  Nach  dem Start von TERM gelangt man mit ALT-P  ins  Parameter-MenÅ.
+  Dort wird eingestellt:
+
+  V24-COMx:     5
+  Handshake:    S
+  Schutzzeiten: 0 (au·er BREAK)
+
+  Bei dieser Version ist nun der Empfang von #BIN#-Files mîglich.  Man
+  geht dabei wie folgt vor (getestet mit TERM v9.98):
+
+  - mit den Befehlen '@M1' und 'E0' den Transparent-Modus ein- und das
+    Zeichenecho abschalten
+
+  - den  BIN-Empfang  mit ALT-U starten und die  Abfragen  (Lesebefehl
+    zuletzt) beantworten
+
+  - nach  der öbertragung mit den Befehlen 'E1' und '@M0'  wieder  den
+    Ausgangszustand herstellen
+
+  Weitere Hinweise dazu findet man in der TERM-Dokumentation.
+
+
+7.5. CT (K1EA)
+
+  Das  Contest-Programm von K1EA kann nun auch mit dem  TFPCX  benutzt
+  werden  (getestet  mit CT v6.26). Bei CW-Contesten geht  das  bisher
+  allerdings  nur  mit KISS oder einer SCC-Karte, da CT sich  bei  der
+  Erzeugung von Morsezeichen sonst nicht mit dem TFPCX vertrÑgt.
+
+  Der Start des TFPCX mu· mit den Optionen '-DR' und '-IFF'  erfolgen.
+  Sinnvoll ist auch die Parametereinstellung Åber die Option '-F'.
+
+  In  der  ersten  Dialogbox  wird im Punkt  'TNC'  der  Wert  'Local'
+  eingestellt  und  bei Modembetrieb mu· fÅr 'Mode'  'SSB'  ausgewÑhlt
+  sein. Im Communications Setup wird keine Einstellung vorgenommen (CT
+  darf  nicht  auf den Modem-Port zugreifen). Auf  dem  QSO-Bildschirm
+  wird  dann zuerst der Befehl 'DRSI' eingegeben, mit ALT-T der  TALK-
+  Mode gewÑhlt und einmal ENTER gedrÅckt. Dann kann man den DX-Cluster
+  connecten  und im mit ALT-A geîffneten ANNOUNCE-Window die  DX-Infos
+  beobachten.  Den Rest mu· man selbst ausprobieren, dabei  am  besten
+  Single   Unlimited   einstellen,   da  man   als   Single   Operator
+  EinschrÑnkungen unterliegt.
+
+
+7.6. DIEBOX (DF3AV)
+
+  DIEBOX kann Åber das TFPC-Interface mit dem TFPCX verwendet  werden.
+  Mit  einem einfachen Modem wird man eine Box sicher kaum  betreiben,
+  aber  die Nutzung einer SCC-Karte ist ja durchaus denkbar.  FÅr  die
+  direkte Kopplung einer Box an einen Digipeater (z.B. RMNC) kann  der
+  KISS-Mode genutzt und damit ein TNC eingespart werden.
+
+  TFPCX  mu·  hier ohne '-DR' gestartet werden, ob  '-DM'  klappt  mu·
+  selbst  getestet  werden.  Es ist sinnvoll, die  Anzahl  der  KanÑle
+  (Option  '-CH')  und Puffer (Option '-BU') zu erhîhen.  Zur  DIEBOX-
+  Konfiguration kann ich keine Angaben machen, da ich es selbst  nicht
+  getestet habe.
+
+
+7.7. WINPR (DG6BI)
+
+  WINPR kann ab Version 2.0 ebenfalls mit dem TFPCX verwendet  werden,
+  weil  es  das TFPC-Interface unterstÅtzt. Da WINPR  unter  Microsoft
+  Windows  lÑuft, funktioniert dies aber nur mit KISS oder einer  SCC-
+  Karte  (siehe Abschnitt 7.10.) und nur auf einem schnellen  Rechner.
+  Der  Multiport-Betrieb wird von WINPR nicht unterstÅtzt. Die  Option
+  '-DM' sollte also nicht verwendet werden.
+
+  Das  TFPCX wird vor dem Start von Windows oder durch Eintrag in  der
+  Datei WINSTART.BAT geladen. Windows mu· im 386 Enhanced Mode laufen.
+  In der Datei WINPR.INI sind folgende EintrÑge erforderlich:
+
+  Port = Com5
+  TfpcrIrq = 253
+
+
+7.8. TOP (DF8MT)
+
+  Die  TOP-Dokumentation geht auch auf das TFPCX ein, so da· ich  hier
+  nur  Neuerungen  erwÑhne. FÅr den Multiport-Betrieb  mu·  das  TFPCX
+  anstelle von '-DR' jetzt mit der Option '-DX' gestartet werden.
+
+  Unter  TOP stellen sich die verschiedenen TFPCX-Ports wie  getrennte
+  TNCs  dar, wobei aufeinanderfolgenden KanÑlen genau ein  Port  zuge-
+  ordnet  ist. Deshalb mu· beim Connect-Befehl auch  keine  Portnummer
+  angegeben  werden. Bisher wurde diese Illusion allerdings durch  den
+  Umstand  getrÅbt,  da· Connects von au·en immer  auf  dem  untersten
+  freien Kanal mit passendem MYCALL ankamen, unabhÑngig von der im TOP
+  gewÑhlten  Zuordnung.  Mit dem Befehl '@PO' (siehe  Abschnitt  8.2.)
+  lÑ·t sich das nun verhindern.
+
+  Beispiel:
+
+  TFPCX  soll  2 Ports und 20 KanÑle verwalten, wobei fÅr  jeden  Port
+  jeweils  10  KanÑle  vorgesehen sind.  Neben  der  TNC-Konfiguration
+  sollte in TOPSET folgender INI-Befehl eingetragen werden:
+
+  @PO 00000000001111111111
+
+  Au·erdem  ist  das TFPCX mit der Option '-CH20' aufzurufen,  da  als
+  Standard nur noch 10 KanÑle zur VerfÅgung stehen.
+
+
+7.9. FBB (F6FBB)
+
+  Die  F6FBB-BBS-Software unterstÅtzt sowohl das TFPC- (ab v5.15)  als
+  auch das DRSI-Interface. Ich erlÑutere hier nur den  DRSI-Multiport-
+  Betrieb, da dies der allgemeinere Fall ist. FÅr den Modembetrieb ist
+  unbedingt FBB ab v5.15 erforderlich.
+
+  TFPCX wird mit den Optionen '-DR' und '-IFF' geladen. Falls mehr als
+  10  KanÑle benîtigt werden, ist auch '-CH' (siehe Abschnitt  6.2.3.)
+  anzugeben. Die Konfigurationsdatei PORT.SYS mu· fÅr den Betrieb  mit
+  2 Ports wie folgt aussehen:
+
+  # PORT.SYS for FBB 5.15
+  #
+  #Ports TNCs
+   1     2
+  #
+  #Com Interface Adress (Hex) Baud
+   7   4         0            4800
+  #
+  #TNC NbCh Com MultCh Pacln Maxfr NbFwd MxBloc M/P-Fwd Mode Freq
+   1   5    7   0      230   2     1     10     00/60   UDYW 144.650
+   2   5    7   1      230   2     1     10     00/60   UDYW 438.450
+
+  TFPCX simuliert 2 TNCs Åber einen virtuellen COM-Port (COM7). Inter-
+  face  4  steht fÅr DRSI, Adresse und Baud werden  ignoriert,  mÅssen
+  aber  angegeben werden. Die Summe der den Ports zugeordneten  KanÑle
+  (NbCh) darf nicht grî·er als die Anzahl der vorhandenen TFPCX-KanÑle
+  (Option  '-CH')  sein. Es wird jeweils nur eine  Datei  INITTNC1.SYS
+  bzw. MAINT1.SYS verwendet, in der alle nîtigen Parameter einzeln mit
+  Portangaben  (siehe Abschnitt 8.1.) gesetzt werden.  Der  'P'-Befehl
+  ist beim TFPCX nicht zur gleichzeitigen Einstellung aller  Parameter
+  eines Ports benutzbar, wie beim DRSI-TNCTSR-Treiber mîglich. Weitere
+  Informationen sind der FBB-Dokumentation zu entnehmen.
+
+
+7.10. MS-Windows, OS/2 u.a.
+
+  Das  TFPCX  stellt  beim  Modembetrieb  hohe  Anforderungen  an  die
+  Reaktionszeiten des Systems auf Interrupts (siehe Anhang 2.), welche
+  von  Microsoft  Windows 3.x und IBM OS/2 2.0  nicht  erfÅllt  werden
+  (auch wenn es manchem schwer fÑllt, das zu aktzeptieren). Aus diesem
+  Grund  reagiert  das TFPCX mit einer Fehlermeldung, wenn man  es  in
+  diesen Systemen fÅr Modembetrieb starten will.
+
+  Mit einer SCC-Karte ist ein Betrieb mîglich. Unter Windows hat  dies
+  mit 1200 Baud recht gut funktioniert. Allerdings gibt es bei hîheren
+  Baudraten  auch mit SCC-Karten Probleme. Unter OS/2 lief  das  TFPCX
+  weniger gut, ich habe es allerdings nur kurz getestet.
+
+  Der  KISS-Mode  funktioniert  bei mir mit bis zu  38400  Baud  unter
+  beiden  Systemen  ohne  Probleme,  da  die  dabei  verwendete   COM-
+  Schnittstelle von Windows und OS/2 durch Treiber optimal unterstÅtzt
+  wird, was bei den SCC-Karten leider (verstÑndlicherweise) nicht  der
+  Fall ist.
+
+  Bei  anderen  Multitasking-Systemen  dÅrften  Ñhnliche  VerhÑltnisse
+  herrschen.
+
+
+
+8. Betrieb
+
+  In  diesem Abschnitt werden wichtige Unterschiede und  Erweiterungen
+  des TFPCX im  Vergleich zur TNC-Firmware TF 2.3b erlÑutert.
+
+
+8.1. Multiport-Erweiterungen
+
+  Die bedeutendste Erweiterung ist sicher die FÑhigkeit, mehrere Ports
+  und  damit  Modems und FunkgerÑte anzusteuern. Wer  nur  einen  Port
+  verwendet  braucht  sich darum nicht kÅmmern und kann  zum  nÑchsten
+  Abschnitt Åbergehen.
+
+  Die TFPCX-Firmware verwaltet insgesamt 8 Ports, die wohl selten alle
+  verwendet werden. Auf den nicht benutzten Ports kînnen aber trotzdem
+  interne  Connects  laufen. So kann man z.B.  nebenbei  seinen  CTEXT
+  begutachten,  ohne  damit  andere auf dem  Digi-Einstieg  zu  nerven
+  (verbreiteter Zeitvertreib).
+
+  Jedem  Port ist eine Nummer zugewiesen (0-7), wobei die  Reihenfolge
+  von der Nutzung der Option '-P' beim Start von TFPCX abhÑngt.  Diese
+  Portnummer wird vom TFPCX bei Link-Status-Meldungen, im Monitor  und
+  bei  bestimmten Befehlen ('C', 'L' und 'S') angezeigt, so  da·  eine
+  eindeutige Zuordnung mîglich ist. Die Anzeige erfolgt nur, wenn beim
+  Start von TFPCX die Option '-DR', '-DX' oder '-DM' angegeben wird.
+
+  Beispiel:
+
+  1:fm DG0FT to DB0BLN ctl SABM+
+  1:fm DB0BLN to DG0FT ctl UA-
+
+  CONNECTED to 1:DB0BLN
+
+  Das genaue Format der Meldungen findet man im Anhang 4.2. An welcher
+  Stelle  die Portnummer auf dem Bildschirm erscheint, hÑngt  von  der
+  Art der Meldung und vom Terminalprogramm ab.
+
+  Bei  einigen Firmware-Befehlen (siehe Abschnitt 8.2. und Anhang  1.)
+  besteht   die  Mîglichkeit,  durch   Angabe  der  Portnummer   Port-
+  spezifische  Parameter  einzustellen  oder eine  Station  auf  einem
+  bestimmten Port zu connecten.
+
+  Befehlsformat:
+
+  <Befehl> <Port>:[Parameter]
+
+  <Port>  ist  eine  Ziffer zwischen 0 und 7, vor dem  ':'  darf  kein
+  Leerzeichen stehen.
+
+  Beispiele:
+
+  C 1:DB0BLN
+  T 2:15
+
+  Wenn  kein  Port  angegeben  wird,  der  Befehl  aber  diese  Angabe
+  benîtigt,  wird  entweder  der Port verwendet, auf  dem  der  gerade
+  aktive  Kanal connectet ist, oder der auf dem  Monitor-Kanal  einge-
+  stellte Unproto-Port. Es gibt jedoch Hostmode-Terminalprogramme, die
+  manche  Befehle nicht an den Kanal schicken, auf dem sie  eingegeben
+  wurden,  und damit diese Portzuordnung unterlaufen. Im  Zweifelsfall
+  deshalb immer die Portnummer angeben.
+
+  Die Parametereinstellung erfolgt meist in den  Konfigurationsdateien
+  der Terminalprogramme und mu· dort fÅr jeden Port einzeln geschehen.
+  Die  Datei  TFPCX.INI ist ein Beispiel dafÅr und kann,  nachdem  man
+  seine   persînlichen   Daten  eingetragen  hat,  auch   direkt   zur
+  Initialisierung verwendet werden (Option '-F', Abschnitt 6.2.3.).
+
+  Eingehende  Connects werden normalerweise unabhÑngig vom Port  immer
+  dem  nÑchsten freien Kanal zugewiesen, auf dem das  passende  MYCALL
+  eingestellt  ist. Mit dem Befehl '@PO' (siehe Abschnitt  8.2.)  kann
+  man aber bei Bedarf eine feste Portzuordnung vornehmen.
+
+
+8.2. Besonderheiten von Befehlen
+
+  Es  gibt eine Reihe von Befehlen, die mit der ESC-Taste  eingeleitet
+  und bei ENTER ausgefÅhrt werden (siehe Anhang 1.). Die Befehle  'A',
+  'H', 'K', 'Z', '@F' und '@K' der TF 2.3b existieren nicht.
+
+  Die Parameter 'B', 'O', 'P', 'T', 'W', 'X', '@C', '@D', '@T2', '@T4'
+  und '@TA' werden fÅr jeden Port extra eingestellt.
+
+  Die  internen Timer arbeiten nur mit einer Genauigkeit von +/-  20ms
+  bzw.  60ms, wenn nur KISS oder die OptoPcScc-Karte  ohne  Timer-Port
+  verwendet  wird, was bei der Einstellung einiger  Parameter  wichtig
+  sein  kann. Bei TXTAIL (Befehl '@TA') wird diese Ungenauigkeit  aber
+  automatisch berÅcksichtigt.
+
+  Nun zu den einzelnen Befehlen:
+
+C  Connect
+
+  Bei  mehreren Connects mit der selben Station wird der  eigene  SSID
+  automatisch  bis  maximal  15 erhîht, wenn  der  eingestellte  schon
+  verwendet  wird.  Allerdings bleibt das dem  Terminalprogramm  evtl.
+  verborgen und es zeigt den falschen SSID an.
+
+  Der  C-Befehl  kann  eine zusÑtzliche  Portangabe  enthalten.  Fehlt
+  diese,  wird  sie  der Link-Liste (siehe '@L')  entnommen  oder  der
+  Unproto-Port  verwendet,  falls kein  passender  Eintrag  existiert.
+  Wurde mit dem Befehl '@PO' eine Portzuordnung vorgenommen, dann gilt
+  der  dem Kanal zugeordnete Port als Default-Port. Auf  dem  Monitor-
+  Kanal  wird mit der Portangabe der Unproto-Port ausgewÑhlt, auf  dem
+  die UI-Frames gesendet werden (Default 0).
+
+  Beispiele:
+
+  C 1:DB0BLN                  DB0BLN auf Port 1 connecten
+  C 2:TEST \ Monitor-Kanal    Unproto-Port 2 und Unproto-ID setzen
+  C 2:     /                  nur Unproto-Port 2 setzen
+
+F  Frack
+
+  Der Frack-Parameter kann alternativ in Sekunden- oder 10ms-Einheiten
+  eingegeben  werden.  Werte  kleiner 16 werden in  die  neue  Einheit
+  (10ms) umgerechnet.
+
+O  MAXFRAME
+
+  MAXFRAME  wird  je Port und je Verbindung  einzeln  verwaltet.  Beim
+  Connect wird der Wert des jeweiligen Ports der Verbindung zugewiesen
+  und  kann dann fÅr diesen Connect unabhÑngig (von  anderen  Connects
+  auf dem gleichen Port) eingestellt werden.
+
+  Das 'dynamische' MAXFRAME der TF 2.3b wurde entfernt.
+
+P  P-Persistance
+
+  Hier  wird  auch bei DAMA-Betrieb der non-DAMA-Wert  angezeigt  aber
+  P=255 benutzt.
+
+  Wenn  der angegebene Parameter zwischen 0 und 7 liegt  (Portnummer),
+  wird nun nicht mehr der P-Wert neu gesetzt, sondern einige Parameter
+  dieses Ports in der Form
+
+  <Port> R P W F O N @T2 @T3 T <Baud> @D
+
+  angezeigt.  Diese Parameterabfrage mu·te  aus  KompatiblitÑtsgrÅnden
+  zum  DRSI-TNCTSR-Treiber eingebaut werden, da sie von  SP  verwendet
+  wird. <Baud> ist die eingestellte Baudrate im 'Klartext', nicht  wie
+  beim TNCTSR nur eine zugeordnete Ziffer.
+
+  Der  DRSI-Treiber  verwendet  diesen  Befehl  auch  zum  Setzen  der
+  Parameter,  was  aber  hier nicht funktioniert.  Werden  hinter  der
+  Portnummer weitere Werte angegeben, ignoriert das TFPCX den gesamten
+  Befehl.
+
+QRES  Reset
+
+  QRES  setzt  das  TFPCX lediglich in den  Terminalmode  zurÅck  (wie
+  'JHOST0')  und fÅhrt keinen RESET des Rechners durch. Dieser  Befehl
+  war notwendig, da SP ihn beim DRSI-Befehl 'HB' generiert.
+
+U  Unattended Mode (CTEXT)
+
+  Dieser  Befehl ist vor allem fÅr den Terminalmode wichtig. Bei  'U0'
+  werden Linkstatus-Meldungen sofort ausgegeben, auch wenn gerade  ein
+  anderer  Kanal aktiv ist. Bei 'U1' erscheinen diese  Meldungen  erst
+  dann, wenn der entsprechende Kanal mit dem 'S'-Befehl aktiviert wird
+  und  beim  Connect  von au·en wird ein  zusÑtzlich  angebbarer  Text
+  gesendet.
+
+  Die Standardeinstellung 'U2' verhÑlt sich wie 'U1', ermîglicht  aber
+  au·erdem  einen  Disconnect  durch die connectete  Station  mit  dem
+  Remote-Kommando '//Q' (oder '//q'). Dabei mu· das Kommando am Anfang
+  eines Frames stehen.
+
+  Der Unattended Mode kann auch eingeschaltet werden, wenn kein  CTEXT
+  definiert  ist.  Im Hostmode wirkt sich dieser Befehl  nur  auf  den
+  CTEXT aus.
+
+@C  DCD-Bearbeitung
+
+  TFPCX hat eine Soft-DCD (programmierte Rauschsperre). Bei  langsamen
+  FunkgerÑten kann man den Squelch des EmpfÑngers vîllig offen  lassen
+  und  TFPCX  entscheidet selbst, ob gerade  ein  PR-Signal  empfangen
+  wird.
+
+  Die Soft-DCD wird durch den Befehl  '@C' gesteuert, mit dem man  die
+  Ansprechschwelle  einstellt. Als Parameter wird eine Zahl von 0  bis
+  63 angegeben. Bei '@C0' ist die Soft-DCD ausgeschaltet (Default) bei
+  allen anderen Werten ist sie aktiviert. Je grî·er der Parameter ist,
+  je  stÑrker  ist  die  Soft-DCD  angezogen.  Zur  Erleichterung  des
+  Abgleichs dient die DCD-Anzeige (siehe Option '-C'). Bei zu  kleinen
+  Werten flackert die DCD-Anzeige, bei zu gro·en Werten werden Signale
+  nicht  mehr richtig und zu langsam erkannt. Am besten den  Parameter
+  so  lange erhîhen und nebenbei QRG abhîren, bis die Anzeige  stimmt.
+  Dabei  mu· man eventuell einen Kompromi· finden. Ein  Richtwert  ist
+  '@C25'.
+
+  Bei  SCC-Ports ist ein Abgleich nicht unbedingt  erforderlich,  alle
+  Werte  grî·er  0 aktivieren die Soft-DCD und sind  fÅr  den  Betrieb
+  gleichbedeutend.  Mich  hat  allerdings das  stÑndige  Flackern  der
+  Anzeige  gestîrt,  und so gibt es die Mîglichkeit, auch  hier  einen
+  Abgleich vorzunehmen, der sich aber nur auf die Anzeige auswirkt.
+
+  WICHTIG!
+
+  Die Soft-DCD erkennt nur PR-Signale der gleichen Baudrate. Auf Digi-
+  Einstiegen  mit  mehreren Geschwindigkeiten darf sie  deshalb  nicht
+  benutzt werden.
+
+  Bei  KISS  Åbernimmt der TNC die DCD-Bearbeitung und  dieser  Befehl
+  bestimmt  lediglich die Zeit (in 10ms-Einheiten), nach der  die  RX-
+  Anzeige verlischt, wenn kein weiteres Byte vom TNC empfangen wird.
+
+@L  Linkliste
+
+  Mit diesem Befehl wird die interne Linkliste verwaltet, mit der  man
+  maximal 8 Rufzeichen (mit SSID) einen best. Port zuordnen kann.  Die
+  Liste  wird beim Digipeating (Befehl 'R') verwendet, um den Port  zu
+  ermitteln,  auf dem der zu digipeatende Frame gesendet werden  soll.
+  Ist  dort kein passender Eintrag vorhanden, wird der Frame  auf  dem
+  gleichen Port ausgesendet, auf dem er empfangen wurde.
+
+  Syntax:
+
+  @L <Port>:<Call> <Port>:<Call> ...
+
+  Beispiel:
+
+  @L 0:DB0BLN 1:DB0BLO
+
+  Mit '@L-' wird die Linkliste gelîscht und '@L' ohne Parameter  zeigt
+  die EintrÑge an.
+
+  Beim Crossband-Digipeating mu· sowohl das Zielcall als auch das Call
+  des  Absenders in der Linkliste eingetragen sein, da die  Verbindung
+  sonst nur in einer Richtung funktioniert.
+
+@M  Transparent-Modus
+
+  Im Terminalmode werden empfangene Steuerzeichen normalerweise  umge-
+  wandelt  (z.B. Control-Z wird als '^Z' dargestellt). Dadurch  werden
+  die  Daten  verfÑlscht, was den Empfang  von  BIN-Dateien  unmîglich
+  macht.
+
+  Mit  dem Befehl '@M1' wird ein Modus aktiviert, bei dem  alle  Daten
+  ohne  VerÑnderung  (transparent) an das  Terminalprogramm  Åbergeben
+  werden, womit nun auch der BIN-Empfang mîglich ist.
+
+  Im Gegensatz zur Original-TF 2.4 wirkt sich dieser Befehl nicht  auf
+  die  7/8-Bit-Wandlung  aus.  Das TFPCX verwendet immer  den  8  Bit-
+  Zeichensatz.
+
+@PO  Portzuordnung
+
+  Mit  diesem  Befehl kann man fÅr jeden Kanal festlegen,  ob  er  von
+  allen,  nur von einem bestimmten oder von keinem Port aus  connectet
+  werden kann. Wurde einem Kanal ein bestimmter Port zugewiesen,  gilt
+  dieser auch als Default-Port beim 'C'-Befehl.
+
+  Als Parameter wird eine Zeichenkette Åbergeben, wobei das 1. Zeichen
+  zu  Kanal  1 gehîrt, das 2. Zeichen zu Kanal 2 usw. Bei  10  KanÑlen
+  besteht  die Zeichenkette also im Normalfall aus 10 Zeichen.  Werden
+  weniger  Zeichen  angegeben,  bleibt die  Zuordnung  der  restlichen
+  KanÑle   unverÑndert,  ist  die  Zeichenkette  lÑnger,  werden   die
+  ÅberflÅssigen Zeichen ignoriert. Folgende Zeichen sind mîglich:
+
+  '0' bis '7'  Connect nur von einem Port mîglich (Portnummer)
+  '*'          Connect von allen Ports mîglich
+  '-'          kein Connect von au·en mîglich
+
+  Beispiele:
+
+  @PO 0000011111*****-----
+
+  Die  KanÑle 1-5 sind nur von Port 0 connectbar, die KanÑle 6-10  nur
+  von Port 1, die KanÑle 11-15 sind von allen Ports aus erreichbar und
+  die  KanÑle  16-20 sind Åberhaupt nicht connectbar  und  werden  fÅr
+  Connects nach au·en freigehalten.
+
+  @PO **********
+
+  Alle  KanÑle kînnen von allen Ports connectet werden. Dies  ist  die
+  Standardeinstellung und ist kompatibel zu frÅheren TFPCX-Versionen.
+
+  Eingehende  Connects werden dem untersten freien  Kanal  zugewiesen,
+  auf  dem  das passende MYCALL eingestellt ist und dem  entweder  der
+  Port zugeordnet wurde, von dem der Connect kommt oder der von  allen
+  Ports connectbar ist ('*'). Gibt es keinen passenden Kanal, wird der
+  Connect abgewiesen (BUSY).
+
+@ST  Statistik
+
+  Mit '@ST <Port>:' werden fÅr den angegebenen Port einige  Statistik-
+  Werte  ausgegeben.  Die Werte gelten fÅr alle  Connects  auf  diesem
+  Port. Bitte beachten, da· die ZÑhler nach dem Wert 65535 wieder  auf
+  0 zurÅckgesetzt werden.
+
+  Beispiel:
+
+  0 SCC0 TX 87 11 10 RX 547 201 201 ERR 1
+  ^ ^       ^  ^  ^     ^   ^   ^       ^
+  1)2)      3) 4) 5)    6)  7)  8)      9)
+
+  1) Portnummer
+  2) Schnittstelle ('NULL', wenn interner Port)
+  3) insgesamt gesendete Frames
+  4) gesendete I-Frames
+  5) bestÑtigte I-Frames (4)-5) ist verloren gegangen)
+  6) insgesamt empfangene Frames
+  7) empfangene I-Frames
+  8) effektiv empfangene I-Frames (7)-8) REJects)
+  9) aufgetretene Fehler (wird nur bei SCC und KISS angezeigt und nur
+     wenn nicht 0)
+
+  Mit  diesen Werten sind einfache statistische Aussagen  mîglich.  An
+  die  Portbezeichnung 2) wird bei KISS ein '+' angehÑngt, wenn  SMACK
+  aktiviert ist.
+
+  Wert 9) bezieht sich bei einem SCC-Port auf die Over- und  Underruns
+  des  SCC-Controllers, die immer dann auftreten, wenn  nicht  schnell
+  genug auf Interrupts reagiert wird. Bei KISS fÅhren Zeichenverluste,
+  KISS-Frame-  und CRC-Fehler (bei SMACK) zur Erhîhung dieses  Wertes.
+  Wenn  die  Fehleranzahl  schnell grî·er wird,  ist  der  Rechner  zu
+  langsam fÅr die verwendete Baudrate oder bei KISS ist die Verbindung
+  zum TNC nicht in Ordnung.
+
+  Mit '@ST <Port>:-' werden die Werte gelîscht.
+
+@T4  T2 bei DAMA
+
+  Dieser  Befehl  gibt  den T2-Startwert  fÅr  DAMA-Betrieb   an   und
+  bestimmt  die Zeit, die gewartet wird  bis  ein   empfangener  Frame
+  bestÑtigt wird.
+
+@TA  TXTAIL
+
+  TXTAIL kann in 10ms-Einheiten eingestellt werden (0-6000), ist  aber
+  im  Normalfall  unter  BerÅcksichtigung  von  Baudrate  und   Timer-
+  Ungenauigkeit optimal gesetzt (@TA=4 bei 300 Baud, @TA=1 sonst). Bei
+  KISS  hÑngt  das  richtige TXTAIL vom TNC  ab,  weshalb  hier  keine
+  automatische Einstellung erfolgt.
+
+@U  Unproto-Poll
+
+  Hiermit  wird festgelegt, ob Unproto-Frames mit  gesetztem  Poll-Bit
+  ausgesendet werden (Default) oder ohne.
+
+
+8.3. KISS
+
+  Beim  KISS-Betrieb gibt es einige Besonderheiten, auf die an  dieser
+  Stelle eingegangen wird.
+
+  Wenn  das TFPCX gestartet wird, mu· ein zu verwendender TNC  bereits
+  eingeschaltet  und im KISS-Mode sein. Das TFPCX bietet selbst  keine
+  Mîglichkeit  zur  Aktivierung von KISS. Der  beim  TFPCR  vorhandene
+  Befehl @K existiert hier nicht. Zum Einschalten des KISS-Modes  kann
+  man das mitgelieferte Programm KISSINIT benutzen.
+
+  TFPCX unterstÅtzt die KISS-Erweiterung SMACK (Version 1.0), die  die
+  Sicherheit  vor öbertragungsfehlern verbessert. SMACK  wird  automa-
+  tisch aktiviert, wenn das angeschlossene GerÑt dies erlaubt. Mit dem
+  Befehl  @ST (siehe Abschnitt 8.2.) lÑ·t sich ÅberprÅfen, in  welchem
+  Modus  gearbeitet wird (Anzeige bei SMACK z.B. 'COM1+').  SMACK  ist
+  erst  dann aktiv, wenn mindestens je 1 Frame gesendet und  empfangen
+  wurde.
+
+  Die  Sende-/Empfangsanzeige  bezieht  sich bei KISS  nicht  auf  den
+  eigentlichen  öbertragungskanal, sondern auf die  serielle  Schnitt-
+  stelle zum TNC bzw. gekoppelten Rechner.
+
+  Zur  Kopplung eines PCs mit einem anderen Rechner  (z.B.  Digipeater
+  und  Mailbox) benîtigt man lediglich ein Nullmodem-Kabel. Das  TFPCX
+  arbeitet  dabei  immer Duplex (Befehl @D hat keine  Bedeutung).  Die
+  Parameter sind entsprechend einzustellen. Die folgenden AusfÅhrungen
+  sind vor allem fÅr normalen TNC-Betrieb wichtig.
+
+  Im  KISS-Mode  hat  das  TFPCX  keine  direkte  Kontrolle  Åber  den
+  öbertragungskanal,  da der TNC dazwischen geschaltet ist. Das  TFPCX
+  hat keine Mîglichkeit festzustellen, ob die Frequenz  augenblicklich
+  frei ist und wann zu sendende Frames tatsÑchlich vom TNC  Åbertragen
+  wurden,  was  zu  unnîtigen Aussendungen  fÅhren  kann.  Dabei  sind
+  insbesondere zwei FÑlle interessant:
+
+  - Das TFPCX hat einen Frame an den TNC zur Aussendung Åbergeben  und
+    wartet  auf die BestÑtigung der anderen Station. Falls  zu  diesem
+    Zeitpunkt  der Kanal lÑngere Zeit durch eine andere Station  (z.B.
+    Digi)  belegt  ist, kann der TNC den Frame nicht  senden  und  das
+    TFPCX nimmt nach einer bestimmten Zeit an, da· der Frame  verloren
+    gegangen ist und wiederholt ihn, obwohl er noch gar nicht gesendet
+    wurde. Die Folge ist die unnîtige doppelte Aussendung des Frames.
+
+    Die  Zeit  zwischen  Aussendung  eines  Frames  und  Empfang   der
+    BestÑtigung  wird  vom TFPCX gemessen und  daraus  ermittelt,  wie
+    lange  im Mittel auf die Antwort gewartet werden mu·. Damit  passt
+    sich  diese  Zeit der Kanalbelegung an  und  derartige  Dopplungen
+    sollten nur selten auftreten. Durch éndern des Parameters @A3 kann
+    man die Verzîgerung bei Bedarf beeinflussen.
+
+  - Wenn hintereinander mehrere Frames empfangen werden, kînnen  diese
+    normalerweise  durch einen einzigen Frame bestÑtigt werden.  Dabei
+    ergibt  sich  die Frage, wann das TFPCX davon ausgehen  kann,  da·
+    kein  weiterer  Frame folgt und die BestÑtigung  generiert  werden
+    kann.  Beim  seriellen  Modem oder einer  SCC-Karte  wird  einfach
+    solange gewartet, bis die Gegenstation ihre Aussendung beendet hat
+    und der öbertragungskanal frei ist.
+
+    Bei KISS ist dieses Vorgehen nicht mîglich. Hier ist die  richtige
+    Einstellung des Parameters @T2 besonders wichtig. Er bestimmt  die
+    Zeit,  die  nach  Empfang eines Frames gewartet  wird,  bevor  ein
+    BestÑtigungsframe erzeugt wird. Wenn vor Ablauf dieser Verzîgerung
+    ein  weiterer Frame eintrifft, beginnt die Zeitmessung  von  vorn.
+    Der  Timer  sollte  erst ablaufen, wenn  kein  Frame  mehr  folgt,
+    wodurch alle empfangenen Frames zusammen bestÑtigt werden. Ist @T2
+    zu  kurz eingestellt, werden unnîtigerweise mehrere  BestÑtigungen
+    gesendet.
+
+    Welchen  Wert mu· @T2 nun erhalten? Die  eingestellte  Verzîgerung
+    mu·  etwas grî·er als die maximale Sendedauer fÅr einen Frame  der
+    Gegenstation sein. In AbhÑngigkeit von der Modem-Baudrate kann man
+    folgende Richtwerte angeben:
+
+      Baud  @T2
+
+      1200  250
+      2400  150  (Default)
+      4800  100
+      9600   50
+
+    Diese Angaben gelten fÅr Frames mit 256 Datenbytes und sind  recht
+    gro·zÅgig gewÑhlt. Wer mit den Werten experimentieren will, sollte
+    dabei im Monitor beobachten, ob beim Empfang  aufeinanderfolgender
+    Frames,  jeder  Frame einzeln mit einem RR-Frame  bestÑtigt  wird.
+    Falls das nur sehr selten auftritt, ist es aber auch aktzeptabel.
+
+    WICHTIG!
+
+    Der  Default-Wert @T2=150 ist fÅr 1200 Baud-Betrieb zu kurz.  Hier
+    sollte unbedingt eine grî·ere Verzîgerung eingestellt werden.
+
+    Bei  DAMA wird anstelle von @T2 der Parameter @T4  verwendet.  Die
+    Standard-Einstellung  @T4=1 ist fÅr KISS nicht zu  empfehlen.  FÅr
+    DAMA gelten ebenfalls die genannten Richtwerte.
+
+
+8.4. DAMA
+
+  Sobald  eine Verbindung zu einem DAMA-Master  (Digipeater)  besteht,
+  sendet  das  TFPCX  nur noch dann, wenn es einen  Frame  vom  Master
+  empfÑngt, dann allerdings alle anstehenden Frames auf allen KanÑlen.
+  Der DAMA-Slave wird jeweils nur fÅr den Port aktiviert, auf dem  die
+  Verbindung  zum Master besteht. Die Connects, die Åber  die  anderen
+  Ports laufen arbeiten ganz normal ohne DAMA.
+
+  Es  ist nicht notwendig, fÅr DAMA spezielle Parameter  einzustellen.
+  Damit  ist  alternativer Betrieb problemlos mîglich.  Mit  dem  'B'-
+  Befehl  kann man ermitteln, ob DAMA eingeschaltet (Wert in  Klammern
+  grî·er 0). Die vom DAMA-Master empfangenen Frames (nicht die  selbst
+  gesendeten) erhalten im Monitor den Zusatz '[DAMA]'.
+
+  Bei dieser Version erfolgte eine énderung im DAMA-Slave, wodurch die
+  bekannten Meckermeldungen von TheNetNode-Digis bei Multiconnect  nun
+  kaum  noch  auftreten sollten, was ich jedoch  selbst  nicht  testen
+  konnte.
+
+
+
+
+                                ANHANG
+
+
+
+1. BefehlsÅbersicht
+
+  Befehl        Parameter       Beschreibung
+  ------        ---------       ------------
+
+  * B (120)       0             DAMA-Einschaltung blockiert
+                 1-600          DAMA-Timeout-Zeit (Sekunden)
+
+  * C            Call ...       Connect-Weg (Kanal 0: unproto)
+
+    D                           Disconnect
+
+    E (1)         0             kein Echo fÅr eingegebene Zeichen
+                  1             Echo fÅr eingegebene Zeichen
+
+    F (250)      1-15           Startwert fÅr T1 (Sekunden)
+                16-65535        Startwert fÅr SRTT (10ms)
+
+    G            [0]            Information im Hostmode holen
+                 [1]            Status im Hostmode holen
+
+    I            Call           eigenes Rufzeichen
+
+    JHOST (0)     0             Terminalmode eingeschalten
+                  1             Hostmode eingeschalten
+
+    L           [0-10]          Statusanzeige fÅr die KanÑle
+
+    M (N)       NIUSC+-         Monitor-Betriebsart
+
+    N (20)       0-127          Anzahl der Versuche (0 = unendlich)
+
+  * O (2)        1-7            Anzahl der unbestÑtigten Pakete
+
+  * P (32)       0-7            Parameterabfrage fÅr angegebenen Port
+                 8-255          P-Persistenz Wert fÅr non-DAMA
+
+    QRES                        RÅcksetzen in Terminalmode
+
+    R (1)         0             Digipeater ausgeschaltet
+                  1             Digipeater eingeschaltet
+
+    S (0)        0-10           Kanal-Nummer (0 = unproto)
+
+  * T (25)       0-127          Wartezeit von PTT ein bis Daten (10ms)
+
+    U (2)        0 [Text]       Connecttext unterdrÅcken
+                 1 [Text]       Connecttext aktiv
+                 2 [Text]       Connecttext und Remote-//Quit aktiv
+
+    V (2)         1             Protokoll Version 1
+                  2             Protokoll Version 2
+
+  * W (10)       0-127          Zeitschlitz fÅr P-Persistenz (10ms)
+
+  * X (1)         0             PTT fÅr Sender unterdrÅckt
+                  1             PTT fÅr Sender freigegeben
+
+    Y (10)       0-10           Maximale Anzahl von Verbindungen
+
+    @A1 (7)      0-65535        SRTT-GlÑttung, wenn RTT steigt
+                                (SRTT'=(A1*SRTT+RTT)/(A1+1))
+
+    @A2 (15)     0-65535        SRTT-GlÑttung, wenn RTT fÑllt
+                                (SRTT'=(A2*SRTT+RTT)/(A2+1))
+
+    @A3 (3)      2-16           Faktor fÅr T1 (T1=A3*SRTT)
+
+    @B                          Zeigt Anzahl der freien Puffer
+
+  * @C (0)        0             Software-DCD aus
+                 1-63           Schwellwert fÅr Software-DCD
+
+  * @D (0)        0             Full duplex ausgeschaltet
+                  1             Full duplex eingeschaltet
+
+    @I (80)       0             IPOLL aus
+                 1-256          maximale LÑnge eines IPOLL-Frames
+
+    @L           Port:Call ...  Linkliste eingeben (max. 8 EintrÑge)
+                 '-'            Linkliste lîschen
+
+    @M (0)        0             Umwandlung empfangener Steuerzeichen
+                  1             Transparent-Modus bei Empfang
+
+    @PO ('*')    cccccccccc     Portzuordnung (je Kanal ein Zeichen)
+                 c = '0'-'7'    Connect nur von Port c mîglich
+                     '*'        Connect von allen Ports mîglich
+                     '-'        kein Connect von au·en mîglich
+
+    @S                          Momentaner Link-Status
+
+  * @ST                         Statusanzeige je Port
+                 '-'            StatuszÑhler rÅcksetzen
+
+  * @T2 (150)    0-65535        Timer T2 (10ms)
+
+    @T3 (30000)  0-65535        Timer T3 (10ms)
+
+  * @T4 (1)      0-65535        Timer T2 bei DAMA (10ms)
+
+  * @TA (1/4)    0-6000         Zeit von Frameende bis PTT aus (10ms)
+
+    @U  (1)       0             Unproto-Frames ohne Poll
+                  1             Unproto-Frames mit Poll
+
+    @V  (0)       0             Rufzeichencheck abgeschaltet
+                  1             Rufzeichencheck eingeschaltet
+
+  *   Parameter <Port>: mîglich
+  []  optionale Parameter
+  ()  Standardeinstellungen
+  ... mehrere Parameter mîglich
+
+
+
+2. Fehlerbehebung (Modembetrieb)
+
+  Bei  Problemen  sollte man zunÑchst mal Åberlegen, woran  es  liegen
+  kînnte. Neben dem TFPCX kommen dafÅr auch das Terminalprogramm,  das
+  Modem, die SCC-Karte oder die HF-Technik in Frage.
+
+  Dieser Abschnitt gilt vor allem fÅr den Modembetrieb.
+
+  Das  TFPCX stellt an den verwendeten Rechner hîherere  Anforderungen
+  als  ein  normaler  TNC. Werden diese nicht  erfÅllt,  kommt  es  zu
+  Problemen. Zum VerstÑndnis mîchte ich erlÑutern, wie das TFPCX  beim
+  Empfangen und Senden arbeitet.
+
+  Beim Packet Radio werden die Daten seriell und synchron  Åbertragen.
+  Die  serielle Schnittstelle kann normalerweise nur asynchrone  Daten
+  mit Start- und Stopbits verarbeiten, beim Packet Radio gibt es diese
+  nicht. Damit ist die Schnittstelle auch nicht im herkîmmlichen Sinne
+  verwendbar.  Das  TFPCX  mu·  sich deshalb  um  jedes  einzelne  Bit
+  kÅmmern,  die  serielle  Schnittstelle wird nur  als  simples  Latch
+  benutzt, um jeweils ein Bit zu puffern.
+
+  Damit  das TFPCX die Daten im vorgegebenen Zeitraster von z.B.  1200
+  Bit/s  verarbeiten  kann, benîtigt es ein genaues  Zeitnormal.  Beim
+  Senden  reichen  dafÅr  1200  Takte/s, fÅr  den  Empfang  sind  beim
+  verwendeten  Verfahren  aber 3600 Takte/s erforderlich,  damit  eine
+  stÑndige  Synchronisierung zum empfangenen Signal mîglich  ist.  Das
+  TFPCX benutzt dazu eine programmierte PLL. Die Modem-RX-Datenleitung
+  wird  in  jeder  Bitzeit  3  mal  abgetastet,  ob  eine  Flanke   im
+  empfangenen Signal auftrat. Im Idealfall dÅrfte eine Flanke nur  bei
+  jedem   3.   Abtasten  auftreten,  durch  Schwankungen   im   Signal
+  'verrutscht'  aber dieses Raster von Zeit zu Zeit. Die  Richtung  in
+  der das Signal aus dem Raster lÑuft kann durch den dreimaligen  Test
+  erkannt und ausgeglichen werden.
+
+  Ich habe als Zeitgeber den in jedem PC enthaltenen Timer-IC benutzt,
+  der  auch fÅr die Uhrzeit zustÑndig ist. Der Timer lîst  3600  mal/s
+  einen Interrupt (Unterrechung des laufenden Programms) aus, was dann
+  zum  Aufruf  einer  bestimmten Routine fÅhrt, die  fÅr  Empfang  und
+  Senden  zustÑndig  ist.  Es ist klar, da·  diese  Routine  nur  dann
+  richtig arbeiten kann, wenn sie auch im vorgegebenen Raster  stÑndig
+  ohne grî·ere Verzîgerungen aufgerufen wird.
+
+  Wenn man das TFPCX mit einem angeschlossenen TNC vergleicht,  ergibt
+  sich  bei der gleichen Baudrate etwa eine 30-fache Belastung,  macht
+  bei 1200 Baud Modembetrieb eine Baudrate von 36000 zwischen TNC  und
+  Rechner,  womit viele PCs schon Probleme haben. Es ist  deshalb  ein
+  gro·er Unterschied, ob man einen TNC oder das TFPCX benutzt.
+
+
+2.1. Sende- und Empfangsprobleme
+
+  Der  verwendete Rechner mu· zuerst Åberhaupt in der Lage  sein,  die
+  angesprochene  Zahl  von Interrupts zu verkraften.  Bei  öberlastung
+  verlangsamt  sich  das  System  extrem oder  stÅrzt  sogar  ab.  Aus
+  Erfahrungen kann man etwa folgende Tabelle angeben (ohne GewÑhr):
+
+  PC    XT   XT   286  386
+  MHz   5    8    12   20
+
+  Baud
+   300  *    *    *    *
+  1200  ?    ?    *    *
+  2400  -    ?    *    *
+  4800  -    -    ?    *
+
+  *  Betrieb mîglich
+  ?  Betrieb eventuell mîglich (mit EinschrÑnkungen)
+  -  Betrieb unmîglich
+
+  Es gibt aber auch immer wieder Probleme mit Rechnern, die eigentlich
+  schnell  genug sind. Es handelt sich dabei vor allem  um  unsicheren
+  Empfang,  der hÑufige REJects zur Folge hat, was dann zur  stÑndigen
+  Wiederholung  von  Frames  fÅhrt.  Die  Ursache  dafÅr  sind   meist
+  bestimmte  residente Programme, Treiber  und  Hardwareerweiterungen,
+  die  lÑngere Zeit verhindern, da· Interrupts auftreten kînnen.  Wenn
+  dies,  wÑhrend ein Frame empfangen wird, nur einmal fuer  ca.  200Ês
+  passiert,  wird  dieses Packet verloren gehen. Falls  man  derartige
+  Probleme hat, sollte man das TFPCX mal mit der Option '-D'  starten.
+  Treten wÑhrend des Betriebes Unterbrechungen des hîrbaren Tones auf,
+  deutet dies auf den genannten Aspekt hin.
+
+  HÑufige Problemquellen:
+
+  - Verwenden  des  Extended  (XMS) oder  Expanded  Memory  (EMS)  als
+    Pufferspeicher fÅr Terminalprogramme (z.B. SP, GP) und Disk-Caches
+    (vor allem auf 286ern)
+
+    Als  Abhilfe  mu· man verhindern, da· auf  diesen  Speicher  zuge-
+    griffen  wird, solange mit dem TFPCX gearbeitet wird. Bei SP  darf
+    man  dazu  nicht  die SPO.EXE und  das  XMS-Swapping  ('SWP=1'  in
+    CONFIG.SP) verwenden. GP sollte mit der Option '/NOXMS'  gestartet
+    werden. Den Disk-Cache kann man evtl. trotzdem verwenden, wenn die
+    Option '-ND' angegeben wird (siehe Abschnitt 6.2.3.).
+
+  - Treiber,  die das Hochladen von residenten Programmen  ermîglichen
+    (z.B. EMM386)
+
+    Reicht es nicht aus, wenn man die Ma·nahmen aus dem vorigen Absatz
+    berÅcksichtigt, mu· auf den EMM386-Treiber evtl. vîllig verzichtet
+    werden, solange man mit dem TFPCX arbeitet.
+
+  - langsame Tastatur-Treiber (KEYB)
+
+    Wenn immer dann Frames verloren gehen, wenn man eine Taste drÅckt,
+    sollte  man mal einen anderen Tastaturtreiber  ausprobieren  (z.B.
+    CKEYGR.COM von der SP-Disk)
+
+  - VGA-Karten und HD-Controller
+
+    Manche  VGA-Karten sperren vor allem im Grafikmodus  (GP)  lÑngere
+    Zeit den Interrupt. Mir wurde auch berichtet, da· es HD-Controller
+    gibt, die Probleme verursachen, wenn man den Controller entfernte,
+    lief  alles  einwandfrei. Hier fÑllt es schwer,  ein  praktikables
+    Rezept   anzugeben.  Man  sollte  es  vielleicht  mal  mit   einem
+    Terminalprogramm  versuchen, da· keine Grafik verwendet  bzw.  bei
+    Problemen  mit  Diskzugriffen  die  Option  '-ND'  verwenden,  die
+    allerdings gewîhnungsbedÅrftig ist (siehe Abschnitt 6.2.3.).
+
+  Manchmal  sind  doch  gewisse Kompromisse nîtig, um  mit  dem  TFPCX
+  arbeiten  zu  kînnen, wer diese nicht eingehen will, mu·  halt  aufs
+  TFPCX verzichten. Wer sich wundert, warum das TFPCX plîtzlich  nicht
+  mehr  geht,  sollte  mal nachdenken, ob er  vielleicht  einen  neuen
+  Treiber  geladen oder etwas anderes verÑndert hat. Was ich auf  alle
+  FÑlle  nicht  will  ist,  da· jemand mit  dem  TFPCX  unnîtig  Digi-
+  Einstiege belastet, weil er jeden Frame erst beim 3. mal hîrt.
+
+
+2.2. Probleme mit anderen Programmen
+
+  WÑhrend  das  TFPCX  aktiv ist, dÅrfen  keine  Programme  aufgerufen
+  werden, die sich am vom TFPCX benutzten Timer vergreifen. Wird  dies
+  doch getan, kann das System abstÅrzen, sich extrem verlangsamen oder
+  die Systemuhr geht falsch. Zu diesen Programmen zÑhlen z.B.:
+
+  - MS-Word 5.0 und 5.5
+  - EDIT von MS-DOS 5.0
+  - manche Mousetreiber
+
+  Bei folgenden Programmen traten ebenfalls Probleme auf, deren genaue
+  Ursache unbekannt ist:
+
+  - Tastaturtreiber von DR-DOS 6.0 (Tastatur hÑngt), anderen Treiber
+    (z.B. CKEYGR.COM, der mal mit SP vertrieben wurde) verwenden
+
+  - Microsoft Mousetreiber (MOUSE.COM), Abhilfe durch anderen Treiber
+
+  - IBM VCPI.SYS-Treiber (bei Notebooks verwendet), Entfernen des
+    Treibers behebt evtl. das Problem
+
+
+2.3. Hardwareprobleme
+
+  Es  gibt einige PCs (vor allem Laptops), die keine  voll  kompatible
+  serielle Schnittstelle haben. Obwohl die Anforderungen hier nicht so
+  hoch  sind wie beim BayCom, kann es bei grî·eren  Abweichungen  auch
+  mit dem TFPCX auf solchen Rechnern Probleme geben. Oftmals geht zwar
+  der Empfang, nur das Senden klappt nicht. Bisher habe ich derartiges
+  von folgenden Rechnern gehîrt:
+
+  - Toshiba 1000XE
+  - NEC Multispeed
+  - Olivetti M24
+
+  Beim  TFPCX  gibt  es  die Mîglichkeit,  das  Modem  Åber  die  LPT-
+  Schnittstelle anzuschlie·en, was als Ausweg denkbar ist.
+
+  Laptops und Notebooks unterstÅtzen meist verschiedene Stromsparmodi,
+  die  dem TFPCX nach einer bestimmten Zeit ohne Tastendruck  die  be-
+  nîtigte Rechenleistung entziehen. Bei diesen Rechnern (z.B. Olivetti
+  Quaderno)  ist es oftmals nîtig, das Powermanagment  (besonders  die
+  Absenkung des Prozessortaktes) zu deaktivieren.
+
+
+
+3. Hardwareanschlu·
+
+
+3.1. Serielle Modems
+
+  BayCom-kompatible  Modems kînnen ohne énderung verwendet werden.  In
+  seltenen FÑllen gibt es Probleme durch die stabilere Stromversorgung
+  beim  TFPCX  im  Vergleich zum BayCom. Hier  liegt  die  TXD-Leitung
+  statisch  auf  etwa +12V, wÑhrend BayCom ein Taktsignal  auf  dieser
+  Leitung  liefert. Dadurch liegt die Versorgungsspannung  des  Modems
+  etwas hîher und der Spannungteiler an Pin 7 des TCM3105 liefert eine
+  vom   Idealwert  abweichende  Spannung.  In  diesem  Fall  ist   ein
+  Neuabgleich   des   Spannungsteilers  erforderlich   (siehe   Modem-
+  Dokumentation).
+
+  ZusÑtzlich  besteht  noch  die  Mîglichkeit,  ein  Modem  (z.B.  vom
+  DigiCom)  Åber eine LPT-Schnittstelle anzuschlie·en. Dabei werden  6
+  Datenleitungen  statisch  auf ca. 5V geschaltet, was  eventuell  zur
+  Stromversorgung  des  Modems verwendet werden  kann  (Benutzung  auf
+  eigene Gefahr).
+
+  Hier die Anschlu·belegung der Modem-Schnittstellen:
+
+  COM-Port
+
+  Signal   25pol.  9pol.  Bedeutung
+
+  DTR      20      4      Sendedaten +/- 12V
+  RTS      4       7      PTT, High aktiv, -12V=RX, +12V=TX
+  CTS      5       8      Empfangsdaten
+  GND      7       5      Masse
+  TXD      2       3      +12V fÅr BayCom-Modem
+
+  LPT-Port
+
+  Signal   25pol.         Bedeutung
+
+  DATA1-6  2-7            statisch ca. 5V fÅr Modem
+  DATA7    8              Sendedaten, TTL-Pegel
+  DATA8    9              PTT, High aktiv, 0V=RX, 5V=TX
+  BUSY     11             Empfangdaten
+  GND      18-25          Masse
+
+  Auch  Modems  mit  dem AM7911 kînnen  verwendet  werden.  DafÅr  mu·
+  eventuell der TXTAIL-Parameter (Befehl @TA) etwas vergrî·ert werden.
+  Ich  will hier noch darauf hinweisen, da· man fÅr  andere  Baudraten
+  auch   andere  Modems  braucht.  Eventuell  sind  auch  nur   kleine
+  énderungen erforderlich (Quarz tauschen).
+
+
+3.2. BayCom-USCC-Karte
+
+  Die   Anschlu·belegung   der   USCC-Karte   mu·   der    zugehîrigen
+  Dokumentation  entnommen werden. Hier wird nur die Nummerierung  der
+  Ports  und  die Standardeinstellungen fÅr  Modem-Taktversorgung  und
+  Baudrate aufgefÅhrt:
+
+  Port  SCC  Modem-Takt   Baud  Modem
+
+  SCC0  1A   Softclock    1200  AFSK (TCM3105)
+  SCC1  1B   Softclock    1200  AFSK (AM7911)
+  SCC2  2A   Disable      9600  Extern
+  SCC3  2B   DF9IC-Modem  9600  FSK  (DF9IC)
+
+  Der  zweite  SCC-Controller (Z8530) mu·  nicht  unbedingt  vorhanden
+  sein, wenn die entsprechenden KanÑle nicht benutzt werden, der erste
+  Controller  ist  jedoch immer notwendig. Damit kann jetzt  auch  die
+  9k6-USCC-Karte verwendet werden (Option -PUSCC:<Base>:<IRQ>:31).
+
+  Die nÑchste Tabelle gibt nochmal die genauen Taktquellen fÅr Empfang
+  (RxC)  und Senden (TxC) und den Kodierungsmode an. Die erste  Spalte
+  enthÑlt  die bei der Option -PUSCC anzugebende Ziffer,  die  letzten
+  geben die Ñquvivalenten Werte fÅr die Parameter CARRIER und  HENNING
+  beim BayCom an. Soft-DCD und Duplex-Betrieb wird mit den Befehlen @C
+  und @D eingeschaltet.
+
+  -P              RxC  TxC  Mode CARRIER HENNING
+
+   1 Softclock    DPLL BRG  NRZI   0/1      0
+   2 Hardclock    DPLL RTxC NRZI   2-4      0
+   3 DF9IC-Modem  TRxC RTxC NRZ    1-4      1
+
+  BRG   Baudratengenerator \ im SCC-Controller
+  DPLL  Digitale PLL       / enthalten
+  RTxC                     \ AnschlÅsse des
+  TRxC                     / SCC-Controllers
+
+  Bei  einigen  USCC-Karten gibt es  vermutlich  Timing-Probleme  beim
+  Zugriff  auf  den  Datenport der SCC-Controller.  Beim  TFPCX  v2.00
+  wurden   dadurch  vereinzelt  sinnlose  Daten  gesendet.  Nach   dem
+  Herabsetzen  des  Bustaktes bzw. dem  Austausch  der  SCC-Controller
+  durch  Original-ZILOG-Typen  lie·en  sich  diese  Effekte  teilweise
+  beseitigen.  Das TFPCX gibt nun die Sendedaten nicht mehr  Åber  den
+  Datenport  aus,  wie  das beim BayCom ebenfalls  gemacht  wird.  Ich
+  hoffe, da· diese Probleme damit nicht mehr auftreten.
+
+
+
+4. Informationen fÅr Softwareentwickler
+
+
+4.1. Programm-Interface
+
+  Die  Kommunikation zum TFPCX erfolgt Åber einen  Software-Interrupt.
+  Es  existieren  verschiedene Unterfunktionen, die Åber den  Wert  im
+  Register  AH   beim Aufruf selektiert werden.  Eventuelle  Parameter
+  werden  in AL Åbergeben. AX enthÑlt bei RÅckkehr das  Ergebnis  oder
+  0xFFFF, wenn eine nicht existierende Funktion ausgewÑhlt wurde. Alle
+  zur Eingabe bereitstehenden Zeichen sollten eingelesen werden, bevor
+  die   nÑchste  Ausgabe  gemacht  wird.  Das  TFPCX   unterstÅtzt   2
+  verschiedene Interfaces, die sich nur wenig unterscheiden.
+
+
+4.1.1. TFPC-Interface
+
+  Unterfunktionen:
+
+  AH = 1  Abfrage, ob ein Zeichen zur Eingabe bereit steht
+
+          RÅckgabe:   AX = 0  kein Zeichen bereit
+                      AX = 1  Zeichen zur Eingabe bereit
+
+  AH = 2  Zeicheneingabe (nur aufrufen, wenn Funktion 1 mitgeteilt
+          hat, da· ein Zeichen zur VerfÅgung steht)
+
+          RÅckgabe:   AL      Zeichenkode
+
+  AH = 3  Ausgabe eines Zeichens
+
+          Parameter:  AL      auszugebendes Zeichen
+
+  Drei  Bytes nach dem Einsprung in die TFPCX-Interrupt-Routine  steht
+  der  Kennungsstring  'N5NX', anhand dessen  der  benutzte  Interrupt
+  ermittelt kann.
+
+
+4.1.2. DRSI-Interface
+
+  Die  Implementierung im TFPCX erfolgte anhand von SP, da  mir  weder
+  eine  Beschreibung  noch  der TNCTSR-Treiber  selbst  zur  VerfÅgung
+  stand.  Ich  konnte mich deshalb nur an  der  FunktionsfÑhigkeit  im
+  Zusammenhang  von  SP orientieren, Abweichungen  vom  Original  sind
+  mîglich.
+
+  Unterfunktionen:
+
+  AH = 0  Eingabe eines Zeichens
+
+          RÅckgabe:   AH = 0  kein Zeichen zur Eingabe bereit
+                      AH = 1  Zeichen zur Eingabe bereit
+                      AL      Zeichenkode (nur wenn AH = 1)
+
+  AH = 1  Ausgabe eines Zeichens
+
+          Parameter:  AL      auszugebendes Zeichen
+
+          RÅckgabe:   AH = 0  kein Zeichen zur Eingabe bereit (nur zur
+                              KompatibilitÑt mit TNCTSR-Treiber)
+
+  Die Interrupt-Routine beginnt mit folgenden Bytes:
+
+  0x53 0x1E 0xBB 0x?? 0x?? 0x8E 0xDB 0x84 0xE4 0x74 0x20
+
+  Der benutzte Interrupt kann ermittelt werden, indem der Anfang aller
+  Routinen  der Interrupt-Vektoren 0x40 bis 0xFF mit dieser  Bytefolge
+  verglichen  wird, dabei kînnen die Positionen 0x??  beliebige  Werte
+  annehmen.  Dieses Verfahren funktioniert auch mit  dem  DRSI-TNCTSR-
+  Treiber und wird ebenfalls von SP benutzt.
+
+
+4.1.3. Spezielle Funktionen
+
+  Die folgenden Unterfunktionen sind Erweiterungen, die nur beim TFPCX
+  existieren. Sie sind bei beiden Interface-Varianten vorhanden.
+
+  AH = 0xFB  Abfrage von Port- und Kanalanzahl (ab v2.00)
+
+             RÅckgabe:  AL       Anzahl der benutzten Ports (0 bis 8)
+                        AH       Anzahl vorhandener KanÑle (4 bis 40)
+
+             Die Kanalanzahl wird mit der Option '-CH' eingestellt.
+
+  AH = 0xFC  Abfrage des Sende-/Empfangsstatus (ab v2.00)
+
+             RÅckgabe:  AL       Empfangsstatus (Bit-Nr. = Port)
+                        AH       Sendestatus
+
+             Mit  dieser  Funktion  kann  eine  Sende-/Empfangsanzeige
+             durch  das  Terminalprogramm realisiert  werden,  da  die
+             Option  -C  nur  im Textmode  funktioniert  und  fÅr  den
+             Bildschirmaufbau  auch nicht optimal ist. Jedem Port  ist
+             je  ein Bit von AL und AH zugeordnet. Bit 0 (LSB)  gehîrt
+             zu  Port 0, Bit 1 zu Port 1 usw.. Wenn das jeweilige  Bit
+             gesetzt ist, wird auf diesem Port gerade empfangen  (DCD)
+             bzw. gesendet. Bei Duplex-Betrieb kînnen auch beide  Bits
+             zugleich  gesetzt sein. Die Funktion 0xFB gibt in AL  die
+             Anzahl Ports zurÅck, die angezeigt werden sollten.
+
+  AH = 0xFD  Abfrage des TFPCX-Busy-Status (ab v1.11b)
+
+             RÅckgabe:  AX = 0   Busy (freie Puffer < 176)
+                        AX = 1   nicht Busy
+
+             Hiermit ist ein Sendehandshake im Terminalmode mîglich.
+
+  AH = 0xFE  Abfrage der TFPCX-Version (ab v1.01)
+
+             RÅckgabe:  AH = 2   Hauptversionsnummer
+                        AL = 10  Unterversionsnummer (kein BCD)
+
+             Diese  Funktion ermîglicht die Unterscheidung  des  TFPCX
+             vom TFPCR (liefert AX = 0xFFFF) und DRSI-TNCTSR (lieferte
+             bei  einem Test AX = 0). Man sollte prÅfen, ob  1<=AH<=20
+             gilt  und  nur in diesem Fall auf  das  TFPCX  schlie·en.
+             Au·erdem  kann mit dieser Funktion ermittelt  werden,  ob
+             noch  eine  alte Version verwendet  wird,  die  bestimmte
+             Funktionen noch nicht unterstÅtzt.
+
+
+4.2. Format von Meldungen
+
+  Im  folgenden  werden die Meldungen des TFPCX aufgefÅhrt,  die  eine
+  Portnummer  enthalten  und  damit von  der  TNC-Firmware  abweichen.
+  <Port>  ist  eine Ziffer zwischen 0 und 7. Die Anzeige  von  <Port>:
+  erfolgt nur, wenn das TFPCX mit den Optionen '-DR', '-DX' oder '-DM'
+  gestartet  wird. Die Monitor-Meldungen bei '-DR' wurden  bei  dieser
+  Version  geÑndert, um unbeabsichtigte Unterschiede zum  DRSI-TNCTSR-
+  Treiber zu beseitigen.
+
+  - Link-Status
+
+    BUSY fm <Port>:<Call> via <Digis>
+    CONNECTED to <Port>:<Call> via <Digis>
+    LINK RESET fm <Port>:<Call> via <Digis>
+    LINK RESET to <Port>:<Call> via <Digis>
+    DISCONNECTED fm <Port>:<Call> via <Digis>
+    LINK FAILURE with <Port>:<Call> via <Digis>
+    FRAME REJECT fm <Port>:<Call> via <Digis> (x y z)
+    FRAME REJECT to <Port>:<Call> via <Digis> (x y z)
+
+  - Monitor (Optionen '-DX' und '-DM')
+
+    <Port>:CONNECT REQUEST fm <Call> via <Digis>
+    <Port>:fm <Call> to <Call> via <Digis> ctl <Name> pid <Hex>
+
+  - Monitor (Option '-DR' und TNCTSR)
+
+    CONNECT REQUEST fm <Port>:<Call> via <Digis>
+    <Port>: fm <Call> to <Call> via <Digis> ctl <Name> pid <Hex>
+           ^
+      Leerzeichen
+
+  - RÅckgabe des Befehls 'C' ohne Parameter
+
+    <Port>:<Call> via <Digis>
+
+
+4.3. Extended Hostmode
+
+  Der  Extended Hostmode (DG3DBI) ist eine kompatible Erweiterung  des
+  'G'-Befehls,  die  es  ermîglicht, mit  einem  globalen  Poll-Befehl
+  Auskunft Åber alle KanÑle der Firmware zu erhalten, auf denen  Daten
+  vorliegen und die damit als nÑchstes abzufragen sind. Die Verwendung
+  des  Extended Hostmode bewirkt besonders bei der Nutzung von  vielen
+  KanÑlen mit sehr unterschiedlichem Datenaufkommen eine  Verbesserung
+  des Datendurchsatzes zwischen TFPCX und Terminalprogramm.
+
+  Die globale Abfrage erfolgt durch einen 'G'-Befehl an den virtuellen
+  Kanal  255 (Bytefolge: 0xFF 0x01 0x00 'G'), wobei  eventuelle  Para-
+  meter  ignoriert  werden. Das TFPCX antwortet darauf  mit  einer  0-
+  terminierten  Liste aller KanÑle, die Daten gepuffert  haben  (Byte-
+  folge:  0xFF 0x01 Kanal+1 ... 0x00). Kanal+1 ... ist die  AufzÑhlung
+  der jeweils um 1 erhîhten Kanalnummern.
+
+  Beispiel:
+
+  Die  KanÑle  0 (Monitorkanal), 1 und 5 haben  Daten  vorliegen.  Das
+  TFPCX antwortet mit:
+
+  0xFF 0x01 0x01 0x02 0x06 0x00
+
+  Das Terminalprogramm sollte daraufhin die angegebenen KanÑle solange
+  direkt  abfragen,  bis keine Daten mehr vorhanden  sind.  Wenn  alle
+  KanÑle  frei  sind, wird nur 0xFF 0x01 0x00 geliefert.  Beim  ersten
+  globalen  Poll  mu· geprÅft werden, ob eventuell  die  Fehlermeldung
+  "INVALID  CHANNEL NUMBER" kommt, was immer dann passiert,  wenn  der
+  Extended Hostmode von der Firmware noch nicht unterstÅtzt wird.
+
+
+4.4. Bisherige Versionen
+
+  Seit der v1.00 wurden folgende VerÑnderungen vorgenommen:
+
+  v1.01
+
+  - Hinweis auf ungelesenen Informationen durch blinkendes Rechteck
+    wenn kein Hostmode (abschaltbar durch -NB)
+  - Basisadresse des Modem-Ports lÑ·t sich explizit setzen
+  - TxD-Leitung am Modem-Port fÅr Stromversorgung statisch auf +12V
+    geschaltet, Betriebsspannung des Modems beim Entladen ausschalten
+  - Standard-TFPCX-Interrupt jetzt 0xFD (vorher 0xFE)
+  - Versionsabfrage Åber TFPCX-Interrupt (AH = 0xFE)
+
+  v1.10
+
+  - öbergang zur The Firmware v2.3b DAMA (vorher TF v2.1c)
+  - Soft-DCD (Abgleich mit Befehl @C)
+  - Sende-/Empfangs-Anzeige im Hostmode (abschaltbar durch -NC)
+  - Verzîgerung von Disk-Zugriffen bei Senden/Empfang als Notlîsung
+    bei Problemen mîglich (-ND)
+  - automatisches erhîhen des SSID beim Connect, wenn die gleiche
+    Station bereits connectet ist
+  - interne Connects mîglich
+  - setzen von Frack in 1s- oder 10ms-Einheiten (Befehl F)
+  - Unattended Mode kann auch ohne CTEXT eingeschaltet werden,
+    Fehlermeldung 'NO MESSAGE AVAILABLE' entfernt (Befehl U)
+  - 600 Puffer (vorher 400)
+  - Bug behoben, der auf 486ern das Entladen unmîglich machte
+
+  v1.11
+
+  - Befehl Z wieder vorhanden (XON/XOFF fÅr TERM)
+  - LPT-Pins DATA1-6 auf 5V geschaltet fÅr Modem-Stromversorgung
+
+  v1.11b (inoffiziell)
+
+  - Funktion fÅr Sende-Handshake im Terminalmode Åber TFPCX-Interrupt
+    fÅr TERM (AH = 0xFD)
+
+  v2.00
+
+  - UnterstÅtzung fÅr BayCom-USCC-Karte und maximal 2 Modems (maximal
+    6 Ports, intern 8 Ports)
+  - Optionen -PUSCC und -B fÅr USCC-Karte und mehrere Ports erweitert
+  - Option -NC entfernt, DCD-Anzeige wird jetzt Åber -C[xx]
+    eingeschaltet (optionales Bildschirmattribut xx)
+  - jetzt 20 KanÑle (vorher 10)
+  - Emulation des DRSI-TNCTSR-Treibers mîglich, zusÑtzliches Software-
+    Interface (-DR)
+  - bei Option -DM DRSI-kompatible Meldungen, aber altes Software-
+    Interface
+  - Ausgabe von Portnummern in Meldungen
+  - Parameter B, O, P, T, W, X, @C, @D, @T2, @T4 und @TA werden fÅr
+    jeden Port extra verwaltet (Angabe <Port>:)
+  - Befehl QRES setzt zurÅck in Terminalmode
+  - Linkliste fÅr Crossband-Digipeating (Befehl @L)
+  - Statistik-FramezÑhler (Befehl @ST)
+  - einstellbarer TXTAIL-Parameter (Befehl @TA)
+  - Befehl P mit Parameter 0-7 zur DRSI-kompatiblen Parameterabfrage
+    (keine Parametereinstellung)
+  - Befehl Z wieder entfernt
+  - 'dynamisches' MAXFRAME entfernt (Befehl O)
+  - Fehlermeldung bei Modem-Betrieb unter Microsoft-Windows (386
+    Enhanced Mode)
+  - Funktionen zur Abfrage der Port-/Kanalanzahl (AH = 0xFB) und des
+    Sende-/Empfangsstatus (AH = 0xFC) Åber Software-Interrupt
+  - Bugs behoben, die zum PufferÅberlauf beim Hintergrundbetrieb und
+    zeitweise zu ÅberflÅssigen Aussendungen fÅhrte
+
+  v2.01
+
+  - USCC-Sendeprobleme behoben, durch Ausgabe der Sendedaten Åber
+    Controlport (Timing-Probleme beim Datenport weniger USCC-Karten)
+  - Option -BU[nnnn] zur Einstellung der Pufferanzahl (Minimum 400,
+    Default 600), fehlt die Anzahl wird der max. Wert verwendet
+  - Anzahl der Connect-KanÑle Åber Option -CHnn einstellbar (4-40
+    KanÑle, Default 10)
+  - Befehl E (Echo) wieder vorhanden (Default 1, Echo ein)
+  - Befehl @M fÅr #BIN#-Empfang, @M=0 Umwandlung von empfangenen
+    Steuerzeichen (Standard), @M=1 Transparent-Modus (fÅr TERM)
+  - Init-File (Option -F) kann Leerzeilen und Kommentare enthalten
+    (durch '#' oder ';' eingeleitet), ESC automatisch erzeugt ('^'
+    wird ignoriert), Wandlung von TABs in ein Leerzeichen
+  - Remote-Kommando '//Q' (wenn U=1 und JHOST=0)
+  - Frames werden nur gemonitort, wenn mehr als 256 Puffer frei sind
+    (vorher 64 Puffer)
+  - Fehlermeldung bei Modem-Betrieb unter OS/2 2.0
+  - DRSI-Funktion 1 (Zeichenausgabe) gibt AH=0 zurÅck (KompatibilitÑt
+    zum TNCTSR-Treiber, der in AH meldet, ob Zeichen zur Eingabe
+    bereit stehen)
+
+  v2.10
+
+  - KISS-Mode (inkl. SMACK) unterstÅtzt (Option -PKISS, max. 4 Ports)
+  - UnterstÅtzung fÅr PA0HZP-OptoPcScc-Karte (Option -POSCC), Clock-
+    Typen 4 (PA0HZP-Port mit externem Taktteiler) und 5 (PA0HZP-Timer
+    fÅr 75 Hz Zeitnormal)
+  - BayCom-9k6-USCC-Karte unterstÅtzt (2. SCC-Controller nicht
+    ansteuern, wenn nicht benutzt)
+  - IRQs fÅr SCC und KISS: 2-5/7, bei AT zusÑtzlich: 9-12/14-15 (2=9)
+  - Meldungen (Monitor und CONNECT REQUEST) beim DRSI-Interface
+    (Option -DR) geÑndert (InkompatiblitÑten mit dem TNCTSR-Treiber
+    beseitigt), Option -DX fÅr bisherige modifizierte Meldungen
+  - Befehl @PO fÅr wahlweise Portzuordnung (Kanal nur von zugeordnetem
+    Port connectbar, Default-Port bei ausgehenden Connects)
+  - Interne Connects (Loopback) abschaltbar (Option -NL)
+  - TXTAIL (@TA) bei Modem und SCC unter BerÅcksichtigung von Baudrate
+    und Timer-Ungenauigkeit optimal eingestellt (@TA=4 bei 300 Baud,
+    @TA=1 sonst), max. Wert fÅr @TA ist 6000 (bei KISS 255)
+  - 0 Ports, wenn -P nicht angegeben (kein Default-Port)
+  - Option -D bezieht sich auf die vorher stehende Option -P
+  - bei DAMA vor dem Pollen auch auf Ablauf von T1 warten (wie TF 2.6)
+  - Extended Hostmode (DG3DBI) unterstÅtzt
+  - Remote-Kommando '//Q' nur bei U=2 (Default)
+  - @ST- lîscht auch die ERR-ZÑhler
+  - NET/ROM-Monitor entfernt
+  - Default-Parameter F, N, P, R, T, U, @A3, @I, @T2, @T3, @T4 und @TA
+    geÑndert
+
+
+
+5. Urheberrechte und Nutzungsbedingungen
+
+  TFPCX darf zur Verwendung im Amateurfunk als Kopie an Dritte weiter-
+  gegeben  werden, soweit keine GebÅhren erhoben werden.  Insbesondere
+  ist  die  Beigabe des TFPCX zu anderer Hard- und Software  nur  dann
+  erlaubt,  wenn  fÅr das jeweilige Produkt ebenfalls  keine  GebÅhren
+  berechnet  werden  oder mein EinverstÑndnis vorliegt. Es  ist  nicht
+  gestattet,  das Programm kommerziell zu nutzen oder  zu  vertreiben.
+  Die  Weitergabe mu· stets in Form des kompletten Archivs  mit  allen
+  Dateien erfolgen.
+
+  Eine  Garantie fÅr eine ordnungsgemÑ·e Funktion wird nicht  gegeben.
+  Der  Autor  kann nicht fÅr eventuelle SchÑden, die  durch  die  Ver-
+  wendung  von  TFPCX  entstehen, haftbar  gemacht  werden  (Haftungs-
+  ausschlu·).
+
+  Der Autor des Programms TFPCX ist RenÇ Stange (DG0FT). Im TFPCX sind
+  Teile  der  The Firmware 2.3b von NORD><LINK (Urversion  von  DC4OX,
+  DAMA von DL8ZAW, énderungen von DB2OS, DF2AU, DF7ZE, DK6PX,  DL1BHO,
+  DL1MEN,  DL4YBG,  DL9HCJ u.a.) enthalten. Die  Entwicklung  erfolgte
+  anhand des Programms TFPCR v1.60 von DL1MEN.
+
+
+
+6. Bezugshinweise
+
+  Wer Interesse am Programm TFPCX hat, schickt eine leere Diskette mit
+  adressierten und ausreichend frankierten RÅckumschlag an:
+
+  RenÇ Stange
+  O.-Grotewohl-Ring 34
+  15344 Strausberg
+
+  mîgliche Disk-Formate: 3´" 720K oder 1.44M (bevorzugt)
+                         5¨" 360K oder 1.2M
+
+  Wiederverwendbare  UmschlÑge mit Adre·aufkleber sind  auch  mîglich,
+  Hauptsache  ich  mu· das Porto nicht selbst  bezahlen.  Bitte  keine
+  'Åberdimensionalen' UmschlÑge verwenden, sonst gibt es hier Probleme
+  mit dem Briefkasten.
+
+  Ich  kann  weder  Software (z.B.  Terminalprogramme)  noch  Hardware
+  (BayCom-Modem)  mitliefern, die nicht von mir entwickelt wurde.  Man
+  mu· sich in diesem Fall an die entsprechenden Urheber wenden.

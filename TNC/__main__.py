@@ -23,42 +23,65 @@ parser = argparse.ArgumentParser(
     description = DESCRIPTION
 )
 
-
 parser.add_argument(
     '--file',
     required = False,
-    default = DEFAULT_FILE,
-    help='Device file or named pipe to interact with MS-DOS box (default: %s).' % DEFAULT_FILE
+    default  = DEFAULT_FILE,
+    help     = 'Device file or named pipe to interact with MS-DOS box (default: %s).' % DEFAULT_FILE
 )
 
 parser.add_argument(
     '--stations',
-    metavar = "FILE",
+    metavar  = "FILE",
     required = False,
     default = DEF_STA_FILE,
-    help='JSON file with IP address and TCP port of known stations (default: %s).' % DEF_STA_FILE
+    help    = 'JSON file with IP address and TCP port of known stations (default: %s).' % DEF_STA_FILE
+)
+
+parser.add_argument(
+    '--jhost1',
+    required = False,
+    default  = 0,
+    action   = "store_true",
+    help     = 'Start TNC in host mode (default is start in terminal mode).'
+)
+
+
+parser.add_argument(
+    '--ch',
+    metavar  = "N",
+    required = False,
+    default  = 4,
+    type     = int,
+    help     = 'Number of channels (default is 4).'
 )
 
 parser.add_argument(
     '-v',
     required = False,
-    default = 0,
-    action="count",
-    help='Display commands and responses.'
+    default  = 0,
+    action   = "count",
+    help     = 'Display commands and responses. -vv show also TNC polling commands.'
 )
 
 
 args = parser.parse_args()
 
 print(DESCRIPTION)
-print("Reading from '%s'..." % args.file)
+print("Channels available: %d" % args.ch)
 if args.v > 0:
     print("Verbose level: %d" % args.v)
+print("Reading from '%s'..." % args.file)
+
+
+f = open(args.file, 'rb+', buffering=0)
 
 t = TNC(
-    file = args.file, 
-    stafile = args.stations,
-    verbose = args.v
+    f,
+    stafile  = args.stations,
+    verbose  = args.v,
+    hostmode = args.jhost1,
+    channels = args.ch
 )
 t.start()
 

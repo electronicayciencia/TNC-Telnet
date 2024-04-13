@@ -204,11 +204,14 @@ class Channel(threading.Thread):
                             self.station = None # force disconnect status
 
                         else:
-                            # purge binary data (telnet protocol)
-                            data = data.replace(b'\xff\xfc\x01', b'')
-                            self.msgs.append([MSG_I, data])
-                            self._monitor("ItsPSH", data)
-                            self._monitor("MyPSHACK")
+                            if data:
+                                # first packet nay be a Telnet negotiation
+                                if data.startswith(b"\xff"):
+                                    self._reply_telnet_negotiation(s, data)
+                                else:
+                                    self.msgs.append([MSG_I, data])
+                                    self._monitor("ItsPSH", data)
+                                    self._monitor("MyPSHACK")
 
                     # no data to read
                     except BlockingIOError:
@@ -232,7 +235,20 @@ class Channel(threading.Thread):
                     pass
 
 
-            sleep(0.1)
+            sleep(0.01)
+
+    
+    def _reply_telnet_negotiation(self, sock, options):
+        """
+        Reply to a telnet negotiation. Won't comply with anything.
+        """
+        response = options
+        response = response.replace(b'\xfc', b'\xfe') # Won't -> don't
+        response = response.replace(b'\xfd', b'\xfc') # Do -> won't
+        sock.send(response)
+        
+        if self.verbose > 0:
+            print("Telnet negotiation: %s -> %s" % (list(options), list(response)))
 
 
     def _station2ip(self, station):
@@ -348,15 +364,21 @@ class Channel(threading.Thread):
         Data is a string of bytes
         May be thread unsafe.
         """
+        ## TODO: the addition of \n is needed only in some systems
+        ## RX cluster needs it, F6FBB BBS does not.
+        ## This should be an option in the station file.
+        ## This could break binary transfers
+        if data.endswith(b"\r"):
+            data = data + b"\n"
         self.buffer_tx += data
 
 
-    def _count_msgs(self, t = ""):
+    def _count_msgs(self, t = None):
         """
         Return the number of msgs of type t in the msgs buffer
         t = 0 for data, 1 for status, "" for any
         """
-        if t == "":
+        if t == None:
             return len(self.msgs)
         else:
             return len([m for m in self.msgs if m[0] == t])

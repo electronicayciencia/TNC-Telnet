@@ -25,9 +25,10 @@ b'G'    <- Get
 b'0'    <- Optional parameter (0: data, 1: link status)
 """
 
+import threading
+from time import sleep
 from channel import Channel
 from monitor import Monitor
-import threading
 
 # Interface mode
 MODE_TERM = 0  # terminal mode
@@ -52,24 +53,27 @@ MSG_MON_I  = 6  # Monitor information
 class TNC(threading.Thread):
 
 
-    def __init__(self, file, stafile, verbose = 0):
+    def __init__(self, f, stafile, verbose = 0, channels = 4, hostmode = False):
         """
-        file: device file to read/write
+        f: file handler to read/write (rb+)
         stafile: json with known stations IP
-        verbose: log level
+        verbose: log level verbosity
+        channels: number of channels
+        hostmode: start in host mode
         """
         threading.Thread.__init__(self, daemon=True)
         
+        self.f = f
         self.verbose = verbose
         self.stafile = stafile
+        self.max_connections = channels
         
-        self.channels = []
-        self.max_connections = 4
-        self.mode = MODE_TERM  # always start in terminal mode
-
-        self.f = open(file, 'rb+', buffering=0)
-
         self.terminate = False
+
+        if hostmode:
+            self.host_mode()
+        else:
+            self.term_mode()
 
         self.channels = [None] * (self.max_connections + 1)
         self.init_monitor()
@@ -105,24 +109,30 @@ class TNC(threading.Thread):
         Switch from HOST to TERMINAL mode.
         """
         self.mode = MODE_TERM
-        print("TNC in TERMINAL mode")
+        if self.verbose > 0:
+            print("TNC in TERMINAL mode")
 
 
     def term_response(self, msg):
         """
-        Send a response in terminal mode
+        Write a response in terminal mode
         msg: message or b""
         """
+        if self.verbose:
+            print("Terminal resp: %s" % (msg))
+
         self.f.write(msg + b"\r\n")
 
 
     def term_cmd(self, cmd):
         """
-        Execute terminal mode command and write the answer to the stream
+        Execute terminal mode command and compose the answer
         """
         if cmd == b"JHOST1":
             self.host_mode()
-            self.host_response(0, COND_OK, b"")
+            # no answer
+            #self.term_response(b"OK")
+            #self.host_response(0, COND_OK)
 
         else:
             msg = b"INVALID COMMAND: %s" % cmd
@@ -135,6 +145,7 @@ class TNC(threading.Thread):
         Read data or command from f in TERMINAL mode
         Return (i, buffer)
         i = 0 for data, 1 for commands
+        Echo the characters ir self.echo is enabled
         """
         # Special characters in terminal mode
         CHR_CAN = b"\x18"  # cancel: clear the queue
@@ -147,18 +158,21 @@ class TNC(threading.Thread):
         while True:
             c = self.f.read(1)
 
-            if c == CHR_CR:
-                return (is_command, buffer)
-
+            if c == CHR_ESC:
+                is_command = 1
+                buffer = b""
+                
             elif c == CHR_CAN:
                 buffer = b""
 
-            elif c == CHR_ESC:
-                is_command = 1
-                buffer = b""
+            elif c == CHR_CR:
+                if self.verbose:
+                    print("Terminal read: %d %s" % (is_command, buffer))
+                return (is_command, buffer)
 
             else:
                 buffer = buffer + c
+
 
 
 
@@ -170,7 +184,8 @@ class TNC(threading.Thread):
         Switch from TERMINAL to HOST mode.
         """
         self.mode = MODE_HOST
-        print("TNC in HOST mode")
+        if self.verbose > 0:
+            print("TNC in HOST mode")
 
 
     def host_response(self, ch, cond, msg = b""):
@@ -204,11 +219,14 @@ class TNC(threading.Thread):
             print("Host mode response type %d not implemented" % cond)
             return
 
-        if self.verbose > 0:
-            print("Response:" , m)
+        # Print response only if command level worth it
+        if self.verbose >= self.cmdlevel:
+            print("Response: %s" % m)
+
+        self.cmdlevel = 0
 
         self.f.write(m)
-
+        
 
     def host_cmd(self, ch, cmd):
         """
@@ -277,11 +295,18 @@ class TNC(threading.Thread):
 
         elif c == b"Y":  # Y4 Max connections
             if args == b"":
-                ans = self.max_connections
+                ans = b"%d" % self.max_connections
                 self.host_response(ch, COND_OKMSG, ans)
             else:
-                #self.max_connections = args  # not implemented
-                self.host_response(ch, COND_OK)
+                n = int(args)
+                if (n <= self.max_connections):
+                    self.host_response(ch, COND_OK)
+                else:
+                    print("Requested %d channels, %d available." % (n, self.max_connections))
+                    self.host_response(
+                        ch, 
+                        COND_ERRMSG, 
+                        b"INVALID COMMAND: TNC started with %d channels." % self.max_connections)
 
         elif c == b"L":  # L LinkStatus
             ans = self.channels[ch].L()
@@ -305,8 +330,14 @@ class TNC(threading.Thread):
         elif c == b"K":  # K 08.04.124 timestamp
             self.host_response(ch, COND_OK)
 
-        elif c == b"@":  # @V0 Callsign validation disabled
+        elif c == b"Z":  # Z0 disable flow control
             self.host_response(ch, COND_OK)
+
+        elif c == b"@":  # @V0 Callsign validation disabled
+            if args.startswith(b"B"):    # @B display free buffers
+                self.host_response(ch, COND_OKMSG, b"512")
+            else:
+                self.host_response(ch, COND_OK)
 
         elif c == b"H":  # H0 ??
             self.host_response(ch, COND_OK)
@@ -340,8 +371,14 @@ class TNC(threading.Thread):
         while len(buffer) < l + 1:
             buffer += self.f.read(1)
 
-        if self.verbose > 0:
-            print("Command: Ch=%d i=%d len=%d buffer='%s'" % (c,i,l,buffer))
+        # Determine the verbosity level por the command and its response
+        if buffer[0:1] in [b"G", b"L", b"@"]:
+            self.cmdlevel = 2
+        else:
+            self.cmdlevel = 1
+
+        if self.verbose >= self.cmdlevel:
+            print("Cmd: Ch=%d C/I=%d Len=%d %s" % (c,i,l+1,buffer))
         
         return (c, i, buffer)
 
