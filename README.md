@@ -2,6 +2,8 @@
 
 This interface emulates *The Firmware* TNC and makes regular TCP/IP traffic appears like AX.25.
 
+## Description
+
 You can use it to connect to any active F6FBB BBS via the Telnet port, just using AX.25 Packet Radio software. Like **Graphic Packet**:
 
 ![](img/gp_ea2rcf.png)
@@ -91,5 +93,5 @@ Edit `config.gp` and set up 1200 bauds.
 
 ## Caveats
 
-This software only run on Windows for now. To run it in Linux you'd need to adapt the channel module. TCP sockets error codes are quite different between Linux and Windows.
+This software only runs on Windows for now. To run it in Linux you'd need to adapt the channel module. TCP sockets error codes are quite different between Linux and Windows.
 
