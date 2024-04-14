@@ -86,6 +86,8 @@ class Channel(threading.Thread):
         """
         Main loop
         """
+
+        # We need a loop due to non-blocking sockets operation
         while True:
 
             # Disconnected
@@ -120,7 +122,7 @@ class Channel(threading.Thread):
                                 MSG_S,
                                 b"LINK FAILURE with %s: See terminal output" % self.station
                             ])
-                            print("Unknown error:", errname)
+                            print("Unknown error '%s' while in status %d." % (errname, self.status))
                             self._monitor("ItsRST")
                             self.station = None # force disconnect status
 
@@ -150,20 +152,28 @@ class Channel(threading.Thread):
                 # connection attempt failed
                 else:
                     errname = errno.errorcode[err]
+                    # connection refused
                     if errname == "WSAECONNREFUSED":
                         self.msgs.append([
                             MSG_S,
                             b"BUSY fm %s" % self.station
                         ])
                         self._monitor("ItsRST")
-
-                    else:
+                    # timeout
+                    elif errname == "WSAETIMEDOUT":
+                        # do not generate any monitor msg
                         self.msgs.append([
                             MSG_S,
                             b"LINK FAILURE with %s" % self.station
                         ])
+                    # unknown error
+                    else:
                         self._monitor("ItsRST")
-                        print("Unknown error:", errname)
+                        self.msgs.append([
+                            MSG_S,
+                            b"LINK FAILURE with %s" % self.station
+                        ])
+                        print("Unknown error '%s' while in status %d." % (errname, self.status))
 
                     self.station = None # force disconnect status
 
@@ -235,7 +245,7 @@ class Channel(threading.Thread):
                 except:
                     pass
 
-
+            # loop delay
             sleep(0.01)
 
 
