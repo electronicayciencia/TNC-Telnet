@@ -1,5 +1,5 @@
 """
-TFPCX-Telnet: An AX.25 emulator for TCP connections.
+TNC-Telnet: An AX.25 emulator for TCP connections.
 
 EA4BAO  2024/04/09
 
@@ -13,7 +13,6 @@ Usage:
     >>> c.G()
     >>> c.tx(b"...")
 """
-
 
 
 DEFAULT_CALLSIGN = b"NOCALL"
@@ -63,7 +62,9 @@ from time import sleep
 
 class Channel(threading.Thread):
 
-    def __init__(self, ch, monitor, stafile, verbose = 0):
+    def __init__(self, ch, monitor, stafile,
+                 verbose = 0, mycall = DEFAULT_CALLSIGN):
+
         threading.Thread.__init__(self, daemon=True)
         self.channel = ch      # my channel id
         self.monitor = monitor # to simulate monitor traffic
@@ -76,7 +77,7 @@ class Channel(threading.Thread):
                                # because G command requieres them in chronological order
 
         self.station = None    # remote station to connect
-        self.call = DEFAULT_CALLSIGN   # callsign
+        self.call = mycall     # callsign
 
         self.seq  = 0          # for fake monitor
 
@@ -237,7 +238,7 @@ class Channel(threading.Thread):
 
             sleep(0.01)
 
-    
+
     def _reply_telnet_negotiation(self, sock, options):
         """
         Reply to a telnet negotiation. Won't comply with anything.
@@ -246,7 +247,7 @@ class Channel(threading.Thread):
         response = response.replace(b'\xfc', b'\xfe') # Won't -> don't
         response = response.replace(b'\xfd', b'\xfc') # Do -> won't
         sock.send(response)
-        
+
         if self.verbose > 0:
             print("Telnet negotiation: %s -> %s" % (list(options), list(response)))
 
@@ -279,7 +280,7 @@ class Channel(threading.Thread):
         """
         me = self.call
         remote = self.station
-        
+
         # Link setup
         if t == "MySYN":
             mtype = MSG_MON_H
@@ -321,14 +322,14 @@ class Channel(threading.Thread):
             nxt = (seq + 1) % 8
             mtype = MSG_MON_HI
             ftype = "I"
-            msg   = b"fm %s to %s ctl I%d%d pid F0" % (me, remote, nxt, seq)
+            msg   = b"fm %s to %s ctl I%d%d pid F0+" % (me, remote, nxt, seq)
 
         elif t == "ItsPSHACK":
             seq = self.seq
             nxt = (seq + 1) % 8
             mtype = MSG_MON_H
             ftype = "S"
-            msg   = b"fm %s to %s ctl RR%d+" % (remote, me, nxt)
+            msg   = b"fm %s to %s ctl RR%d-" % (remote, me, nxt)
             self.seq = nxt
 
         elif t == "ItsPSH" and i:
@@ -336,14 +337,14 @@ class Channel(threading.Thread):
             nxt = (seq + 1) % 8
             mtype = MSG_MON_HI
             ftype = "I"
-            msg   = b"fm %s to %s ctl I%d%d pid F0" % (remote, me, nxt, seq)
+            msg   = b"fm %s to %s ctl I%d%d pid F0+" % (remote, me, nxt, seq)
 
         elif t == "MyPSHACK":
             seq = self.seq
             nxt = (seq + 1) % 8
             mtype = MSG_MON_H
             ftype = "S"
-            msg   = b"fm %s to %s ctl RR%d+" % (me, remote, nxt)
+            msg   = b"fm %s to %s ctl RR%d-" % (me, remote, nxt)
             self.seq = nxt
 
         else:

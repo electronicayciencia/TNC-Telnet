@@ -1,17 +1,19 @@
-# TFPCX-Telnet
+# TNC Telnet
 
 An AX.25 emulator for TCP connections.
 
-This interface emulates *The Firmware* TNC and makes regular TCP/IP traffic appears like AX.25.
+This interface emulates WA8DED's *The Firmware* TNC and makes regular Telnet traffic appears like AX.25.
 
 ## Description
 
-You can use it to connect to any active F6FBB BBS via the Telnet port, just using AX.25 Packet Radio software. Like **Graphic Packet**:
+You can use it to connect to any active F6FBB BBS via **Telnet** using Packet Radio software with support for TNC driver.
+
+Like **Graphic Packet**:
 
 ![](img/gp_ea2rcf.png)
 
 
-Or TSTHOST:
+Or **TSTHOST**:
 
 ![](img/tsthost_ea5sw.png)
 
@@ -70,7 +72,7 @@ Create a virtual machine. Configure its serial port as a named pipe:
 
 ![](img/serial.png)
 
-Add a floppy drive. 
+Add a floppy drive.
 
 ![](img/floppy.png)
 

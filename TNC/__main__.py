@@ -1,5 +1,5 @@
 """
-TFPCX-Telnet: An AX.25 emulator for TCP connections.
+TNC-Telnet: An AX.25 emulator for TCP connections.
 
 EA4BAO  2024/04/09
 
@@ -15,6 +15,7 @@ from time import sleep
 from tnc import TNC
 
 
+DEFAULT_CALL = "NOCALL"
 DEFAULT_FILE = r'\\.\PIPE\tnc'
 DEF_STA_FILE = "./tnc/stations.json"
 DESCRIPTION = 'An AX.25 emulator for TCP connections'
@@ -36,6 +37,14 @@ parser.add_argument(
     required = False,
     default = DEF_STA_FILE,
     help    = 'JSON file with IP address and TCP port of known stations (default: %s).' % DEF_STA_FILE
+)
+
+parser.add_argument(
+    '--mycall',
+    metavar  = "CALLSIGN",
+    required = False,
+    default = DEFAULT_CALL,
+    help    = 'My callsign (default: %s).' % DEFAULT_CALL
 )
 
 parser.add_argument(
@@ -81,7 +90,8 @@ t = TNC(
     stafile  = args.stations,
     verbose  = args.v,
     hostmode = args.jhost1,
-    channels = args.ch
+    channels = args.ch,
+    mycall   = args.mycall.encode("ascii")
 )
 t.start()
 

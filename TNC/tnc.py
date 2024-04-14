@@ -1,5 +1,5 @@
 """
-TFPCX-Telnet: An AX.25 emulator for TCP connections.
+TNC-Telnet: An AX.25 emulator for TCP connections.
 
 EA4BAO  2024/04/09
 
@@ -53,21 +53,24 @@ MSG_MON_I  = 6  # Monitor information
 class TNC(threading.Thread):
 
 
-    def __init__(self, f, stafile, verbose = 0, channels = 4, hostmode = False):
+    def __init__(self, f, stafile, verbose = 0, channels = 4,
+                 hostmode = False, mycall = None):
         """
         f: file handler to read/write (rb+)
         stafile: json with known stations IP
         verbose: log level verbosity
         channels: number of channels
         hostmode: start in host mode
+        mycall: default callsign (bytes)
         """
         threading.Thread.__init__(self, daemon=True)
-        
+
         self.f = f
         self.verbose = verbose
         self.stafile = stafile
         self.max_connections = channels
-        
+        self.mycall = mycall
+
         self.terminate = False
 
         if hostmode:
@@ -96,7 +99,8 @@ class TNC(threading.Thread):
                 ch = i+1,
                 monitor = self.channels[0],
                 stafile = self.stafile,
-                verbose = self.verbose
+                verbose = self.verbose,
+                mycall  = self.mycall
             )
             self.channels[i+1].start()
 
@@ -161,7 +165,7 @@ class TNC(threading.Thread):
             if c == CHR_ESC:
                 is_command = 1
                 buffer = b""
-                
+
             elif c == CHR_CAN:
                 buffer = b""
 
@@ -226,7 +230,7 @@ class TNC(threading.Thread):
         self.cmdlevel = 0
 
         self.f.write(m)
-        
+
 
     def host_cmd(self, ch, cmd):
         """
@@ -304,8 +308,8 @@ class TNC(threading.Thread):
                 else:
                     print("Requested %d channels, %d available." % (n, self.max_connections))
                     self.host_response(
-                        ch, 
-                        COND_ERRMSG, 
+                        ch,
+                        COND_ERRMSG,
                         b"INVALID COMMAND: TNC started with %d channels." % self.max_connections)
 
         elif c == b"L":  # L LinkStatus
@@ -379,7 +383,7 @@ class TNC(threading.Thread):
 
         if self.verbose >= self.cmdlevel:
             print("Cmd: Ch=%d C/I=%d Len=%d %s" % (c,i,l+1,buffer))
-        
+
         return (c, i, buffer)
 
 

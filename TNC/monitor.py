@@ -1,5 +1,5 @@
 """
-TFPCX-Telnet: An AX.25 emulator for TCP connections.
+TNC-Telnet: An AX.25 emulator for TCP connections.
 
 EA4BAO  2024/04/09
 
