@@ -25,11 +25,6 @@ b'G'    <- Get
 b'0'    <- Optional parameter (0: data, 1: link status)
 """
 
-import threading
-from time import sleep
-from channel import Channel
-from monitor import Monitor
-
 # Interface mode
 MODE_TERM = 0  # terminal mode
 MODE_HOST = 1  # host mode
@@ -49,6 +44,15 @@ MSG_S = 1  # Message is link status
 MSG_MON_H  = 4  # Monitor header/no info
 MSG_MON_HI = 5  # Monitor header/info
 MSG_MON_I  = 6  # Monitor information
+
+
+import threading
+import logging
+from time import sleep
+from channel import Channel
+from monitor import Monitor
+
+logger = logging.getLogger(__name__)
 
 class TNC(threading.Thread):
 
@@ -113,8 +117,7 @@ class TNC(threading.Thread):
         Switch from HOST to TERMINAL mode.
         """
         self.mode = MODE_TERM
-        if self.verbose > 0:
-            print("TNC in TERMINAL mode")
+        logger.info("TNC in TERMINAL mode")
 
 
     def term_response(self, msg):
@@ -122,9 +125,7 @@ class TNC(threading.Thread):
         Write a response in terminal mode
         msg: message or b""
         """
-        if self.verbose:
-            print("Terminal resp: %s" % (msg))
-
+        logger.info("Terminal resp: %s" % (msg))
         self.f.write(msg + b"\r\n")
 
 
@@ -140,7 +141,7 @@ class TNC(threading.Thread):
 
         else:
             msg = b"INVALID COMMAND: %s" % cmd
-            print(msg)
+            logger.error(msg)
             self.term_response(msg)
 
 
@@ -170,8 +171,7 @@ class TNC(threading.Thread):
                 buffer = b""
 
             elif c == CHR_CR:
-                if self.verbose:
-                    print("Terminal read: %d %s" % (is_command, buffer))
+                logger.info("Terminal read: %d %s" % (is_command, buffer))
                 return (is_command, buffer)
 
             else:
@@ -188,8 +188,7 @@ class TNC(threading.Thread):
         Switch from TERMINAL to HOST mode.
         """
         self.mode = MODE_HOST
-        if self.verbose > 0:
-            print("TNC in HOST mode")
+        logger.info("TNC in HOST mode")
 
 
     def host_response(self, ch, cond, msg = b""):
@@ -220,13 +219,11 @@ class TNC(threading.Thread):
             m = b"%c%c%c%s" % (ch, cond, len(msg) - 1, msg)
 
         else:
-            print("Host mode response type %d not implemented" % cond)
+            logger.error("Host mode response type %d not implemented" % cond)
             return
 
         # Print response only if command level worth it
-        if self.verbose >= self.cmdlevel:
-            print("Response: %s" % m)
-
+        logger.log(self.cmdlevel, "Response: %s" % m)
         self.cmdlevel = 0
 
         self.f.write(m)
@@ -267,7 +264,7 @@ class TNC(threading.Thread):
                 elif t == MSG_MON_I:
                     self.host_response(ch, COND_MONINF, msg)
                 else:
-                    print("Unknown packet type: %d", t)
+                    logger.warning("Unknown packet type: %d", t)
 
 
         elif c == b"C":  # C GP160  CQ callsing
@@ -306,7 +303,7 @@ class TNC(threading.Thread):
                 if (n <= self.max_connections):
                     self.host_response(ch, COND_OK)
                 else:
-                    print("Requested %d channels, %d available." % (n, self.max_connections))
+                    logger.warning("Requested %d channels, %d available." % (n, self.max_connections))
                     self.host_response(
                         ch,
                         COND_ERRMSG,
@@ -347,7 +344,7 @@ class TNC(threading.Thread):
             self.host_response(ch, COND_OK)
 
         else:
-            print("Unknown command:", c, args)
+            logger.error("Unknown command: %s" % (c + args))
             self.host_response(ch, COND_ERRMSG, b"INVALID COMMAND: %s" % c )
 
 
@@ -377,12 +374,11 @@ class TNC(threading.Thread):
 
         # Determine the verbosity level por the command and its response
         if buffer[0:1] in [b"G", b"L", b"@"]:
-            self.cmdlevel = 2
+            self.cmdlevel = logging.TRACE
         else:
-            self.cmdlevel = 1
+            self.cmdlevel = logging.DEBUG
 
-        if self.verbose >= self.cmdlevel:
-            print("Cmd: Ch=%d C/I=%d Len=%d %s" % (c,i,l+1,buffer))
+        logger.log(self.cmdlevel, "Cmd: Ch=%d C/I=%d Len=%d %s" % (c,i,l+1,buffer))
 
         return (c, i, buffer)
 

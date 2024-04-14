@@ -57,14 +57,18 @@ import socket
 import errno
 import sys
 import threading
-import json
+import logging
 from time import sleep
 
+logger = logging.getLogger(__name__)
 
 class Channel(threading.Thread):
 
     def __init__(self, ch, monitor, stafile,
                  verbose = 0, mycall = DEFAULT_CALLSIGN):
+
+        global logger  # to change the name once started
+        logger = logging.getLogger("channel-%d" % ch)
 
         threading.Thread.__init__(self, daemon=True)
         self.channel = ch      # my channel id
@@ -87,6 +91,7 @@ class Channel(threading.Thread):
         """
         Main loop
         """
+        logger.debug("Channel %d started" % self.channel)
 
         # We need a loop due to non-blocking sockets operation
         while True:
@@ -132,7 +137,7 @@ class Channel(threading.Thread):
                                 MSG_S,
                                 b"LINK FAILURE with %s: See terminal output" % self.station
                             ])
-                            print("Unknown error '%s' while in status %d." % (errname, self.status))
+                            logger.error("Socket error '%s' while in status %d." % (errname, self.status))
                             self._monitor("ItsRST")
                             self.station = None # force disconnect status
 
@@ -183,7 +188,7 @@ class Channel(threading.Thread):
                             MSG_S,
                             b"LINK FAILURE with %s" % self.station
                         ])
-                        print("Unknown error '%s' while in status %d." % (errname, self.status))
+                        logger.error("Socket error '%s' while in status %d." % (errname, self.status))
 
                     self.station = None # force disconnect status
 
@@ -268,8 +273,7 @@ class Channel(threading.Thread):
         response = response.replace(b'\xfd', b'\xfc') # Do -> won't
         sock.send(response)
 
-        if self.verbose > 0:
-            print("Telnet negotiation: %s -> %s" % (list(options), list(response)))
+        logger.debug("Telnet negotiation: %s -> %s" % (list(options), list(response)))
 
 
     def _station2ip(self, station):
@@ -285,7 +289,7 @@ class Channel(threading.Thread):
         try:
             f = open(self.stafile)
         except Exception as e:
-            print("Cannot open stations file: %s" % e)
+            logger.error("Cannot open stations file: %s" % e)
             return (False, False)
 
         for line in f:
@@ -296,8 +300,7 @@ class Channel(threading.Thread):
             (ssid, host, port, *extra) = re.split(r'\s+', line)
 
             if all([ssid, host, port]) and ssid.upper() == station:
-                if self.verbose > 0:
-                    print("Station %s address is %s %d" % (station, host, int(port)))
+                logger.info("Station %s address is %s %d" % (station, host, int(port)))
                 return (host, int(port))
 
         return (False, False)
@@ -382,7 +385,7 @@ class Channel(threading.Thread):
             self.seq = nxt
 
         else:
-            print("Warning: unknown monitor event '%s'" % t)
+            logger.warning("Unknown monitor event '%s'" % t)
             return
 
         self.monitor.log(mtype, msg, ftype)

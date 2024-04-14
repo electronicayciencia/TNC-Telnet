@@ -6,9 +6,6 @@ EA4BAO  2024/04/09
 Monitor channel
 """
 
-import os
-import sys
-
 DEFAULT_CALLSIGN = b"NOCALL"
 DEFAULT_FILTER = b"N"
 
@@ -22,6 +19,12 @@ MSG_MON_H  = 4  # Monitor header/no info
 MSG_MON_HI = 5  # Monitor header/info
 MSG_MON_I  = 6  # Monitor information
 
+
+import os
+import sys
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Monitor():
 
