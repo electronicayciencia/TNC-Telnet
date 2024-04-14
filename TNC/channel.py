@@ -110,7 +110,16 @@ class Channel(threading.Thread):
                         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                         s.setblocking(False)
 
-                        err = s.connect_ex(ipaddr)
+                        try:
+                            err = s.connect_ex(ipaddr)
+                        except socket.gaierror:
+                            self.msgs.append([
+                                MSG_S,
+                                b"LINK FAILURE with %s: Domain resolution failed" % self.station
+                            ])
+                            self.station = None
+                            continue
+
                         errname = errno.errorcode[err]
 
                         self._monitor("MySYN")
@@ -281,10 +290,10 @@ class Channel(threading.Thread):
 
         for line in f:
             line = line.strip()
-            if line.startswith('#'):
+            if not line or line.startswith('#'):
                 continue
 
-            (ssid, host, port) = re.split(r'\s+', line)
+            (ssid, host, port, *extra) = re.split(r'\s+', line)
 
             if all([ssid, host, port]) and ssid.upper() == station:
                 if self.verbose > 0:

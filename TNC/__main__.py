@@ -102,7 +102,7 @@ def known_stations(file):
             continue
 
         try:
-            (ssid, host, port) = re.split(r'\s+', line)
+            (ssid, host, port, *extra) = re.split(r'\s+', line)
             n = n + 1
         except:
             print("Invalid line %d in stations file." % num)
