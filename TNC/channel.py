@@ -52,6 +52,7 @@ MSG_MON_I  = 6  # Monitor information
 
 
 import os
+import re
 import socket
 import errno
 import sys
@@ -161,7 +162,7 @@ class Channel(threading.Thread):
                         self._monitor("ItsRST")
                     # timeout
                     elif errname == "WSAETIMEDOUT":
-                        # do not generate any monitor msg
+                        self._monitor("MyRST")
                         self.msgs.append([
                             MSG_S,
                             b"LINK FAILURE with %s" % self.station
@@ -266,22 +267,31 @@ class Channel(threading.Thread):
         """
         Return ("ip", port) for a known station.
         Return (False, False) if the station's IP data is not known.
+        Format of the file is space separated:
+        ssid     ip or host    port
+        Lines starting with '#' are comments.
         """
-        station = station.decode().upper() # station is bytes, but json is string
+        station = station.decode().upper().strip() # station is bytes
 
         try:
-            with open(self.stafile) as f:
-                stations = json.load(f)
-
+            f = open(self.stafile)
         except Exception as e:
-            print("Cannot open stations file:", e)
-            stations = {}
-
-        if station in stations:
-            (host, port) = stations[station].split(":")
-            return (host, int(port))
-        else:
+            print("Cannot open stations file: %s" % e)
             return (False, False)
+
+        for line in f:
+            line = line.strip()
+            if line.startswith('#'):
+                continue
+
+            (ssid, host, port) = re.split(r'\s+', line)
+
+            if all([ssid, host, port]) and ssid.upper() == station:
+                if self.verbose > 0:
+                    print("Station %s address is %s %d" % (station, host, int(port)))
+                return (host, int(port))
+
+        return (False, False)
 
 
     def _monitor(self, t, i = None):
@@ -327,6 +337,11 @@ class Channel(threading.Thread):
             ftype = "U"
             msg   = b"fm %s to %s ctl DM-" % (remote, me)
 
+        elif t == "MyRST":
+            mtype = MSG_MON_H
+            ftype = "U"
+            msg   = b"fm %s to %s ctl DM-" % (me, remote)
+
         elif t == "MyPSH" and i:
             seq = self.seq
             nxt = (seq + 1) % 8
@@ -366,7 +381,6 @@ class Channel(threading.Thread):
         if i:
             i = i.replace(b"\r\n", b"\r")
             self.monitor.log(MSG_MON_I, i, "I")
-
 
 
     def tx(self, data):
