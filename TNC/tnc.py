@@ -46,6 +46,7 @@ MSG_MON_HI = 5  # Monitor header/info
 MSG_MON_I  = 6  # Monitor information
 
 
+import sys
 import threading
 import logging
 from time import sleep
@@ -54,8 +55,12 @@ from monitor import Monitor
 
 logger = logging.getLogger(__name__)
 
-class TNC(threading.Thread):
 
+class ClosedPipeException(Exception):
+    pass
+
+
+class TNC(threading.Thread):
 
     def __init__(self, f, stafile, verbose = 0, channels = 4,
                  hostmode = False, mycall = None):
@@ -174,9 +179,11 @@ class TNC(threading.Thread):
                 logger.info("Terminal read: %d %s" % (is_command, buffer))
                 return (is_command, buffer)
 
+            elif c == b'':
+                raise ClosedPipeException()
+
             else:
                 buffer = buffer + c
-
 
 
 
@@ -363,14 +370,20 @@ class TNC(threading.Thread):
         c = channel
         i = 0 for data, 1 for commands
         """
-        c = ord(self.f.read(1))  # channel
-        i = ord(self.f.read(1))  # infocmd
-        l = ord(self.f.read(1))  # len - 1
+        try:
+            c = ord(self.f.read(1))  # channel
+            i = ord(self.f.read(1))  # infocmd
+            l = ord(self.f.read(1))  # len - 1
+        except TypeError:
+            raise ClosedPipeException()
 
-        # Note read on pipes is not blocking
+        # Note read on pipes for more than 1 character is not blocking
         buffer = b""
         while len(buffer) < l + 1:
-            buffer += self.f.read(1)
+            char = self.f.read(1)
+            if char == b"":
+                raise ClosedPipeException()
+            buffer += char
 
         # Determine the verbosity level por the command and its response
         if buffer[0:1] in [b"G", b"L", b"@"]:
@@ -390,17 +403,22 @@ class TNC(threading.Thread):
         """
         Main read/execute loop
         """
-        while self.terminate == False:
-            if self.mode == MODE_TERM:
-                (is_command, buffer) = self.term_read()
+        try:
+            while self.terminate == False:
+                if self.mode == MODE_TERM:
+                    (is_command, buffer) = self.term_read()
 
-                if is_command:
-                    self.term_cmd(buffer)
+                    if is_command:
+                        self.term_cmd(buffer)
 
-            else:
-                (ch, is_command, buffer) = self.host_read()
-
-                if is_command:
-                    self.host_cmd(ch, buffer)
                 else:
-                    self.host_data(ch, buffer)
+                    (ch, is_command, buffer) = self.host_read()
+
+                    if ch is not None:
+                        if is_command:
+                            self.host_cmd(ch, buffer)
+                        else:
+                            self.host_data(ch, buffer)
+
+        except ClosedPipeException:
+            logger.critical("Closed pipe")

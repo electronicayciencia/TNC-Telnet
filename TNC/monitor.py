@@ -10,7 +10,7 @@ DEFAULT_CALLSIGN = b"NOCALL"
 DEFAULT_FILTER = b"N"
 
 MAX_PKTLEN = 254    # max data frame length
-MAX_I_MSGS = 9      # max data frames to store in msgs buffer
+MAX_MSGS = 10        # max number of frames to store in buffer
 
 MSG_I = 0  # Message is data
 MSG_S = 1  # Message is link status
@@ -109,23 +109,67 @@ class Monitor():
         Change or get the monitor filter
         """
         if mfilter:
-            self.mfilter = mfilter
+            self.mfilter = mfilter.upper()
         else:
             return self.mfilter
 
 
-    def log(self, t, msg, f):
+    def log(self, ctl, src, dst, seq = None, nxt = None, i = None, c = True):
         """
-        Add a monitor event
-        t: packet type (header, header+info, info)
-        msg: message bytes
-        f: frame type (ISU)
+        Compose an add a monitor event.
+        Check if message buffer is full.
+        Check the monitor filter.
+        ctl: string, kind of frame (SABM, I, RR, UA, DISC or DM)
+        src: bytes, source SSID
+        dst: bytes, destination SSID
+        seq: int, sequence number (0-7) (mandatory for numbered frames)
+        nxt: int, next sequence number (mandatory for numbered frames)
+        i:   bytes, information (mandatory for I frames)
+        c:   bool, It is from a connected channel
         """
-        self.msgs.append([t, msg])
-        #self.msgs.append([MSG_MON_H,  b"fm %s to %s ctl SABM" % (fm, to)])
-        #self.msgs.append([MSG_MON_HI, b"fm %s to %s ctl I%02X pid %02X" % (fm, to, 5, 14)])
-        #self.msgs.append([MSG_MON_I,  b"Hi\r"])
+        if ctl == "SABM":
+            uisc = b"U"
+            msg = b"fm %s to %s ctl SABM+" % (src, dst)
 
+        elif ctl == "DISC":
+            uisc = b"U"
+            msg = b"fm %s to %s ctl DISC+" % (src, dst)
+
+        elif ctl == "UA":
+            uisc = b"U"
+            msg = b"fm %s to %s ctl UA-" % (src, dst)
+
+        elif ctl == "DM":
+            uisc = b"U"
+            msg = b"fm %s to %s ctl DM-" % (src, dst)
+
+        elif ctl == "RR":
+            uisc = b"S"
+            msg = b"fm %s to %s ctl RR%d-" % (src, dst, nxt)
+
+        elif ctl == "I":
+            uisc = b"I"
+            msg = b"fm %s to %s ctl I%d%d pid F0+" % (src, dst, nxt, seq)
+
+        else:
+            logger.warning("Unknown frame type to monitor: %s" % ctl)
+
+        # Monitor filter
+        if uisc not in self.mfilter:
+            return
+
+        # Prioritize U frames if buffer is full.
+        if uisc in [b"I", b"S"] and len(self.msgs) >= MAX_MSGS:
+            logger.debug("Discarded monitor frame. Full buffer.")
+            return
+
+        # Add messages
+        if ctl == "I":
+            i = i.replace(b"\r\n", b"\r")
+            self.msgs.append([MSG_MON_HI, msg])
+            self.msgs.append([MSG_MON_I, i])
+        else:
+            self.msgs.append([MSG_MON_H, msg])
 
 
 if __name__ == '__main__':

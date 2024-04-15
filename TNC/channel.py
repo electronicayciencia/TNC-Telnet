@@ -46,11 +46,6 @@ ST_EXIT    = -1         # to finish the loop
 MSG_I = 0  # Message is data
 MSG_S = 1  # Message is link status
 
-MSG_MON_H  = 4  # Monitor header/no info
-MSG_MON_HI = 5  # Monitor header/info
-MSG_MON_I  = 6  # Monitor information
-
-
 import os
 import re
 import socket
@@ -81,10 +76,11 @@ class Channel(threading.Thread):
         self.msgs = []         # link status msgs and data msgs must be in the same buffer
                                # because G command requieres them in chronological order
 
-        self.station = None    # remote station to connect
-        self.call = mycall     # callsign
+        self.remote = None    # remote station to connect
+        self.me     = mycall     # callsign
 
-        self.seq  = 0          # for fake monitor
+        self.seq  = 0          # sequence, for fake monitor
+        self.nxt  = 1          # next sequence, for fake monitor
 
 
     def run(self):
@@ -100,16 +96,16 @@ class Channel(threading.Thread):
             if self.status == ST_DISC:
 
                 # Connect if we know the destination
-                if self.station:
+                if self.remote:
 
-                    ipaddr = self._station2ip(self.station)
+                    ipaddr = self._station2ip(self.remote)
 
                     if not all(ipaddr):
                         self.msgs.append([
                             MSG_S,
-                            b"LINK FAILURE with %s: Unknown station" % self.station
+                            b"LINK FAILURE with %s: Unknown station" % self.remote
                         ])
-                        self.station = None # force disconnect status
+                        self.remote = None # force disconnect status
 
                     else:
                         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -120,26 +116,26 @@ class Channel(threading.Thread):
                         except socket.gaierror:
                             self.msgs.append([
                                 MSG_S,
-                                b"LINK FAILURE with %s: Domain resolution failed" % self.station
+                                b"LINK FAILURE with %s: Domain resolution failed" % self.remote
                             ])
-                            self.station = None
+                            self.remote = None
                             continue
 
                         errname = errno.errorcode[err]
 
-                        self._monitor("MySYN")
+                        self.monitor.log("SABM", self.me, self.remote)
 
                         # WSAEWOULDBLOCK = first attempt
                         if errname in ["WSAEWOULDBLOCK", "EINPROGRESS"]:
                             self.status = ST_SETUP
                         else:
+                            self.monitor.log("DM", self.remote, self.me)
                             self.msgs.append([
                                 MSG_S,
-                                b"LINK FAILURE with %s: See terminal output" % self.station
+                                b"LINK FAILURE with %s: See terminal output" % self.remote
                             ])
                             logger.error("Socket error '%s' while in status %d." % (errname, self.status))
-                            self._monitor("ItsRST")
-                            self.station = None # force disconnect status
+                            self.remote = None # force disconnect status
 
 
             # Trying to connect
@@ -158,39 +154,39 @@ class Channel(threading.Thread):
 
                     elif errname == "WSAEISCONN":
                         self.status = ST_CONN
+                        self.monitor.log("UA", self.remote, self.me)
                         self.msgs.append([
                             MSG_S,
-                            b"CONNECTED to %s via Internet" % self.station
+                            b"CONNECTED to %s via Telnet" % self.remote
                         ])
-                        self._monitor("ItsSYNACK")
 
                 # connection attempt failed
                 else:
                     errname = errno.errorcode[err]
                     # connection refused
                     if errname == "WSAECONNREFUSED":
+                        self.monitor.log("DM", self.remote, self.me)
                         self.msgs.append([
                             MSG_S,
-                            b"BUSY fm %s" % self.station
+                            b"BUSY fm %s" % self.remote
                         ])
-                        self._monitor("ItsRST")
                     # timeout
                     elif errname == "WSAETIMEDOUT":
-                        self._monitor("MyRST")
+                        self.monitor.log("DM", self.me, self.remote)
                         self.msgs.append([
                             MSG_S,
-                            b"LINK FAILURE with %s" % self.station
+                            b"LINK FAILURE with %s" % self.remote
                         ])
                     # unknown error
                     else:
-                        self._monitor("ItsRST")
+                        self.monitor.log("DM", self.remote, self.me)
                         self.msgs.append([
                             MSG_S,
-                            b"LINK FAILURE with %s" % self.station
+                            b"LINK FAILURE with %s" % self.remote
                         ])
                         logger.error("Socket error '%s' while in status %d." % (errname, self.status))
 
-                    self.station = None # force disconnect status
+                    self.remote = None # force disconnect status
 
 
             # Connected
@@ -200,18 +196,22 @@ class Channel(threading.Thread):
                 if len(self.buffer_tx) > 0:
                     try:
                         n = s.send(self.buffer_tx[0:MAX_PKTLEN])
-                        self._monitor("MyPSH", self.buffer_tx[0:MAX_PKTLEN])
+                        self.monitor.log(
+                           "I", self.me, self.remote,
+                           self.seq, self.nxt,
+                           self.buffer_tx[0:MAX_PKTLEN])
                     except ConnectionResetError:
+                        self.monitor.log("DM", self.remote, self.me)
                         self.msgs.append([
                             MSG_S,
-                            b"LINK RESET fm %s" % self.station
+                            b"LINK RESET fm %s" % self.remote
                         ])
-                        self._monitor("ItsRST")
-                        self.station = None # force disconnect status
+                        self.remote = None # force disconnect status
 
                     if n > 0:
+                        self.monitor.log("RR", self.remote, self.me, self.seq, self.nxt)
+                        self.incr_seq()
                         self.buffer_tx = self.buffer_tx[n:]
-                        self._monitor("ItsPSHACK")
 
                 # There is space to receive data
                 if self._count_msgs(MSG_I) < MAX_I_MSGS:
@@ -221,13 +221,13 @@ class Channel(threading.Thread):
                         # Socket is closed by the other end
                         # no exception but successfully read b""
                         if data == b"":
+                            self.monitor.log("DISC", self.remote, self.me)
+                            self.monitor.log("UA", self.me, self.remote)
                             self.msgs.append([
                                 MSG_S,
-                                b"DISCONNECTED fm %s" % self.station
+                                b"DISCONNECTED fm %s" % self.remote
                             ])
-                            self._monitor("ItsFIN")
-                            self._monitor("MyFINACK")
-                            self.station = None # force disconnect status
+                            self.remote = None # force disconnect status
 
                         else:
                             if data:
@@ -235,9 +235,12 @@ class Channel(threading.Thread):
                                 if data.startswith(b"\xff"):
                                     self._reply_telnet_negotiation(s, data)
                                 else:
+                                    self.monitor.log(
+                                       "I", self.remote, self.me,
+                                       self.seq, self.nxt, data)
+                                    self.monitor.log("RR", self.me, self.remote, self.seq, self.nxt)
+                                    self.incr_seq()
                                     self.msgs.append([MSG_I, data])
-                                    self._monitor("ItsPSH", data)
-                                    self._monitor("MyPSHACK")
 
                     # no data to read
                     except BlockingIOError:
@@ -245,15 +248,15 @@ class Channel(threading.Thread):
 
                     # link reset
                     except ConnectionResetError:
+                        self.monitor.log("DM", self.remote, self.me)
                         self.msgs.append([
                             MSG_S,
-                            b"LINK RESET fm %s" % self.station
+                            b"LINK RESET fm %s" % self.remote
                         ])
-                        self._monitor("ItsRST")
-                        self.station = None # force disconnect status
+                        self.remote = None # force disconnect status
 
             # Disconnect
-            if not self.station:
+            if not self.remote:
                 self.status = ST_DISC
                 try:
                     s.close()
@@ -306,93 +309,12 @@ class Channel(threading.Thread):
         return (False, False)
 
 
-    def _monitor(self, t, i = None):
+    def incr_seq(self):
         """
-        Simulate monitor events
+        Increase the fake sequence number
         """
-        me = self.call
-        remote = self.station
-
-        # Link setup
-        if t == "MySYN":
-            mtype = MSG_MON_H
-            ftype = "U"
-            msg   = b"fm %s to %s ctl SABM+" % (me, remote)
-
-        elif t == "ItsSYNACK":
-            mtype = MSG_MON_H
-            ftype = "U"
-            msg   = b"fm %s to %s ctl UA-" % (remote, me)
-
-        elif t == "MyFIN":
-            mtype = MSG_MON_H
-            ftype = "U"
-            msg   = b"fm %s to %s ctl DISC+" % (me, remote)
-
-        elif t == "ItsFINACK":
-            mtype = MSG_MON_H
-            ftype = "U"
-            msg   = b"fm %s to %s ctl UA-" % (remote, me)
-
-        elif t == "ItsFIN":
-            mtype = MSG_MON_H
-            ftype = "U"
-            msg   = b"fm %s to %s ctl DISC+" % (remote, me)
-
-        elif t == "MyFINACK":
-            mtype = MSG_MON_H
-            ftype = "U"
-            msg   = b"fm %s to %s ctl UA-" % (me, remote)
-
-        elif t == "ItsRST":
-            mtype = MSG_MON_H
-            ftype = "U"
-            msg   = b"fm %s to %s ctl DM-" % (remote, me)
-
-        elif t == "MyRST":
-            mtype = MSG_MON_H
-            ftype = "U"
-            msg   = b"fm %s to %s ctl DM-" % (me, remote)
-
-        elif t == "MyPSH" and i:
-            seq = self.seq
-            nxt = (seq + 1) % 8
-            mtype = MSG_MON_HI
-            ftype = "I"
-            msg   = b"fm %s to %s ctl I%d%d pid F0+" % (me, remote, nxt, seq)
-
-        elif t == "ItsPSHACK":
-            seq = self.seq
-            nxt = (seq + 1) % 8
-            mtype = MSG_MON_H
-            ftype = "S"
-            msg   = b"fm %s to %s ctl RR%d-" % (remote, me, nxt)
-            self.seq = nxt
-
-        elif t == "ItsPSH" and i:
-            seq = self.seq
-            nxt = (seq + 1) % 8
-            mtype = MSG_MON_HI
-            ftype = "I"
-            msg   = b"fm %s to %s ctl I%d%d pid F0+" % (remote, me, nxt, seq)
-
-        elif t == "MyPSHACK":
-            seq = self.seq
-            nxt = (seq + 1) % 8
-            mtype = MSG_MON_H
-            ftype = "S"
-            msg   = b"fm %s to %s ctl RR%d-" % (me, remote, nxt)
-            self.seq = nxt
-
-        else:
-            logger.warning("Unknown monitor event '%s'" % t)
-            return
-
-        self.monitor.log(mtype, msg, ftype)
-
-        if i:
-            i = i.replace(b"\r\n", b"\r")
-            self.monitor.log(MSG_MON_I, i, "I")
+        self.seq = self.nxt
+        self.nxt = (self.seq + 1) % 8
 
 
     def tx(self, data):
@@ -449,9 +371,9 @@ class Channel(threading.Thread):
         station is a byte array.
         """
         if station:
-            self.station = station.upper()
+            self.remote = station.upper()
         else:
-            return self.station
+            return self.remote
 
 
     def D(self):
@@ -459,13 +381,13 @@ class Channel(threading.Thread):
         Disconnect from a station
         """
         if self.status != ST_DISC:
-            self._monitor("MyFIN")
-            self._monitor("ItsFINACK")
+            self.monitor.log("DISC", self.me, self.remote)
+            self.monitor.log("UA", self.remote, self.me)
             self.msgs.append([
                 MSG_S,
-                b"DISCONNECTED fm %s" % self.station
+                b"DISCONNECTED fm %s" % self.remote
             ])
-            self.station = None # force disconnect status
+            self.remote = None # force disconnect status
 
 
     def L(self):
@@ -499,9 +421,9 @@ class Channel(threading.Thread):
         Change or get the channel callsign
         """
         if call:
-            self.call = call
+            self.me = call
         else:
-            return self.call
+            return self.me
 
 
 if __name__ == '__main__':

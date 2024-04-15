@@ -217,11 +217,14 @@ if __name__ == '__main__':
     t.start()
 
     # Main loop
+    print("Press Ctrl+C to quit.")
     try:
-        while True:
-            input("Press Ctrl+C to quit.\n")
+        while t.is_alive():
+            sleep(0.01)
     except KeyboardInterrupt:
         pass
+    except ClosedPipeException:
+        logger.critical("Closed pipe")
 
     print("Bye! 73")
 
