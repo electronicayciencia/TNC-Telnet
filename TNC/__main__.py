@@ -223,8 +223,6 @@ if __name__ == '__main__':
             sleep(0.01)
     except KeyboardInterrupt:
         pass
-    except ClosedPipeException:
-        logger.critical("Closed pipe")
 
     print("Bye! 73")
 
