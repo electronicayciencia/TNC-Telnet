@@ -20,7 +20,7 @@ Monitor traffic is also simulated:
 
 ![](img/gp_monitor.png)
 
-Remember **this are actual TCP/IP** sockets in disguise.
+Remember **these are actual TCP/IP** sockets in disguise.
 
 
 ## Usage
