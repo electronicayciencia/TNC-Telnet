@@ -2,13 +2,11 @@
 
 An AX.25 emulator for TCP connections.
 
-This interface emulates WA8DED's *The Firmware* TNC and makes regular Telnet traffic appears like AX.25.
-
 ## Description
 
-You can use it to connect to any active F6FBB BBS via **Telnet** using Packet Radio software with support for TNC driver.
+This interface emulates a TNC and makes regular TCP/IP traffic appears like AX.25. So you can connect to a Telnet Ham-Radio BBS or DX Cluster with old MS-DOS **Packet Radio** software.
 
-Like **Graphic Packet**:
+For example **Graphic Packet**:
 
 ![](img/gp_ea2rcf.png)
 
@@ -17,26 +15,19 @@ Or **TSTHOST**:
 
 ![](img/tsthost_ea5sw.png)
 
-You only need a Virtual Machine with the software, an Internet connection and this program.
-
-The emulator runs in the host system. Guest system's COM port is mapped to a named pipe in the host where this software is listening. See **Setup** section below.
 
 Monitor traffic is also simulated:
 
 ![](img/gp_monitor.png)
 
-Remember this is TCP/IP traffic in reality.
-
-However, since this is basically a telnet client, you can use it to connect to **any** telnet server:
-
-![](img/gp_telnet.png)
+Remember **this are actual TCP/IP** sockets in disguise.
 
 
 ## Usage
 
 ### Known stations
 
-Edit `stations.txt` to add data for known stations.
+Edit `stations.txt` and add data for known stations.
 
 Example:
 
@@ -48,10 +39,10 @@ EA2RCF-5        cqnet.dyndns.org     7300
 EA5SW           ea5sw.ddns.net       6300
 ```
 
-This file must be in the same directory where you start the program.
-You can also set the path in the command line options.
+Format is space-separated. Empty lines and lines starting with `#` are ignored.
 
-Format is space-separated. Lines that start with `#` are ignored.
+This file must be in the programs directory. Otherwise, you can set the path with the command line options.
+
 
 ### Command line
 
@@ -61,37 +52,42 @@ If you are using Python, launch it that way:
 python TNC
 ```
 
-For help:
+Help:
 
-```
-python TNC -h
+```console
+$ python tnc -h
+TNCTelnet 1.0
+usage: tnc [-h] [--file FILE] [--stations FILE] [--mycall CALLSIGN]
+           [--jhost1] [--ch N] [-v]
+
+An AX.25 emulator for TCP connections
+
+optional arguments:
+  -h, --help         show this help message and exit
+  --file FILE        Device file or named pipe to interact with MS-DOS
+                     box (default: \\.\PIPE\tnc).
+  --stations FILE    JSON file with IP address and TCP port of known
+                     stations (default: stations.txt).
+  --mycall CALLSIGN  My callsign (default: NOCALL).
+  --jhost1           Start TNC in host mode (default is start in
+                     terminal mode).
+  --ch N             Number of channels (default is 4).
+  -v                 Display commands and responses. Multiple times
+                     show more info.
 ```
 
-If you are using precompiled binaries, open a `cmd` window and run:
-```
-TNCTelnet
-```
-
-Do not open it with double clicking until you are familiar with the software.
-Chances are that something goes wrong and the terminal window will close faster that you have time
-to read what the error was.
+If you are using precompiled binaries, do not open it with double clicking until you are familiar with the software. If something goes wrong, the terminal window will close faster that you have time
+to read the error.
 
 
 ## Setup
 
 ### Virtual machine
 
-Create a virtual machine. Configure its serial port as a named pipe:
+The emulator runs in the **host system**. Create a virtual machine and configure its serial port as a named pipe (default name is `\\.\PIPE\tnc`):
 
 ![](img/serial.png)
 
-Add a floppy drive.
-
-![](img/floppy.png)
-
-Get some MS-DOS floppy images. Install the system.
-
-Install and configure your most nostalgic packet program.
 
 ### Tips for TSTHOST
 
@@ -102,7 +98,6 @@ Install and configure your most nostalgic packet program.
   ```
   TSTHOST /H /C1 /B9600
   ```
-
 
 ### Tips for Graphic Packet
 
@@ -119,3 +114,12 @@ To create the executable file from the Python sources just run:
 ```
 pyinstaller.exe --onefile TNC\__main__.py -n TNCTelnet
 ```
+
+
+## Misc
+
+Since this is basically a telnet client, you can use it to connect to **any** Telnet server:
+
+![](img/gp_telnet.png)
+
+
