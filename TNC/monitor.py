@@ -10,7 +10,7 @@ DEFAULT_CALLSIGN = b"NOCALL"
 DEFAULT_FILTER = b"N"
 
 MAX_PKTLEN = 254    # max data frame length
-MAX_MSGS = 10        # max number of frames to store in buffer
+MAX_MSGS = 10       # max number of frames to store in buffer
 
 MSG_I = 0  # Message is data
 MSG_S = 1  # Message is link status
@@ -70,6 +70,13 @@ class Monitor():
             self.station = station.upper()
         else:
             return self.station
+
+
+    def D(self):
+        """
+        Dummy disconnect method.
+        """
+        pass
 
 
     def L(self):
@@ -158,8 +165,8 @@ class Monitor():
         if uisc not in self.mfilter:
             return
 
-        # Prioritize U frames if buffer is full.
-        if uisc in [b"I", b"S"] and len(self.msgs) >= MAX_MSGS:
+        # Discard I frames if buffer is full.
+        if uisc in [b"I"] and len(self.msgs) >= MAX_MSGS:
             logger.debug("Discarded monitor frame. Full buffer.")
             return
 

@@ -194,66 +194,12 @@ class Channel(threading.Thread):
 
                 # There is data to send
                 if len(self.buffer_tx) > 0:
-                    try:
-                        n = s.send(self.buffer_tx[0:MAX_PKTLEN])
-                        self.monitor.log(
-                           "I", self.me, self.remote,
-                           self.seq, self.nxt,
-                           self.buffer_tx[0:MAX_PKTLEN])
-                    except ConnectionResetError:
-                        self.monitor.log("DM", self.remote, self.me)
-                        self.msgs.append([
-                            MSG_S,
-                            b"LINK RESET fm %s" % self.remote
-                        ])
-                        self.remote = None # force disconnect status
-
-                    if n > 0:
-                        self.monitor.log("RR", self.remote, self.me, self.seq, self.nxt)
-                        self.incr_seq()
-                        self.buffer_tx = self.buffer_tx[n:]
+                    self._socket_tx(s)
 
                 # There is space to receive data
                 if self._count_msgs(MSG_I) < MAX_I_MSGS:
-                    try:
-                        data = s.recv(MAX_PKTLEN)
+                    self._socket_rx(s)
 
-                        # Socket is closed by the other end
-                        # no exception but successfully read b""
-                        if data == b"":
-                            self.monitor.log("DISC", self.remote, self.me)
-                            self.monitor.log("UA", self.me, self.remote)
-                            self.msgs.append([
-                                MSG_S,
-                                b"DISCONNECTED fm %s" % self.remote
-                            ])
-                            self.remote = None # force disconnect status
-
-                        else:
-                            if data:
-                                # first packet nay be a Telnet negotiation
-                                if data.startswith(b"\xff"):
-                                    self._reply_telnet_negotiation(s, data)
-                                else:
-                                    self.monitor.log(
-                                       "I", self.remote, self.me,
-                                       self.seq, self.nxt, data)
-                                    self.monitor.log("RR", self.me, self.remote, self.seq, self.nxt)
-                                    self.incr_seq()
-                                    self.msgs.append([MSG_I, data])
-
-                    # no data to read
-                    except BlockingIOError:
-                        data = b""
-
-                    # link reset
-                    except ConnectionResetError:
-                        self.monitor.log("DM", self.remote, self.me)
-                        self.msgs.append([
-                            MSG_S,
-                            b"LINK RESET fm %s" % self.remote
-                        ])
-                        self.remote = None # force disconnect status
 
             # Disconnect
             if not self.remote:
@@ -265,6 +211,75 @@ class Channel(threading.Thread):
 
             # loop delay
             sleep(0.01)
+
+
+    def _socket_rx(self, s):
+        """
+        Try to receive data in a non-blocking way
+        """
+        try:
+            data = s.recv(MAX_PKTLEN)
+
+            # Socket is closed by the other end
+            # no exception but successfully read b""
+            if data == b"":
+                self.monitor.log("DISC", self.remote, self.me)
+                self.monitor.log("UA", self.me, self.remote)
+                self.msgs.append([
+                    MSG_S,
+                    b"DISCONNECTED fm %s" % self.remote
+                ])
+                self.remote = None # force disconnect status
+
+            else:
+                if data:
+                    # first packet may be a Telnet negotiation
+                    if data.startswith(b"\xff"):
+                        self._reply_telnet_negotiation(s, data)
+                    else:
+                        self.monitor.log(
+                           "I", self.remote, self.me,
+                           self.seq, self.nxt, data)
+                        self.monitor.log("RR", self.me, self.remote, self.seq, self.nxt)
+                        self._incr_seq()
+                        self.msgs.append([MSG_I, data])
+
+        # no data to read
+        except BlockingIOError:
+            pass
+
+        # link reset
+        except ConnectionResetError:
+            self.monitor.log("DM", self.remote, self.me)
+            self.msgs.append([
+                MSG_S,
+                b"LINK RESET fm %s" % self.remote
+            ])
+            self.remote = None # force disconnect status
+
+
+    def _socket_tx(self, s):
+        """
+        Try to send data in a non-blocking way
+        """
+        try:
+            n = s.send(self.buffer_tx[0:MAX_PKTLEN])
+            self.monitor.log(
+               "I", self.me, self.remote,
+               self.seq, self.nxt,
+               self.buffer_tx[0:MAX_PKTLEN])
+        except ConnectionResetError:
+            self.monitor.log("DM", self.remote, self.me)
+            self.msgs.append([
+                MSG_S,
+                b"LINK RESET fm %s" % self.remote
+            ])
+            self.remote = None # force disconnect status
+
+        if n > 0:
+            self.monitor.log("RR", self.remote, self.me, self.seq, self.nxt)
+            self._incr_seq()
+            self.buffer_tx = self.buffer_tx[n:]
 
 
     def _reply_telnet_negotiation(self, sock, options):
@@ -309,27 +324,12 @@ class Channel(threading.Thread):
         return (False, False)
 
 
-    def incr_seq(self):
+    def _incr_seq(self):
         """
         Increase the fake sequence number
         """
         self.seq = self.nxt
         self.nxt = (self.seq + 1) % 8
-
-
-    def tx(self, data):
-        """
-        Append data to TX buffer.
-        Data is a string of bytes
-        May be thread unsafe.
-        """
-        ## TODO: the addition of \n is needed only in some systems
-        ## RX cluster needs it, F6FBB BBS does not.
-        ## This should be an option in the station file.
-        ## This could break binary transfers
-        if data.endswith(b"\r"):
-            data = data + b"\n"
-        self.buffer_tx += data
 
 
     def _count_msgs(self, t = None):
@@ -363,6 +363,21 @@ class Channel(threading.Thread):
                 if m[0] == t:
                     self.msgs.pop(i)
                     return m
+
+
+    def tx(self, data):
+        """
+        Append data to TX buffer.
+        Data is a string of bytes
+        May be thread unsafe.
+        """
+        ## TODO: the addition of \n is needed only in some systems
+        ## RX cluster needs it, F6FBB BBS does not.
+        ## This should be an option in the station file.
+        ## This could break binary transfers
+        if data.endswith(b"\r"):
+            data = data + b"\n"
+        self.buffer_tx += data
 
 
     def C(self, station = None):

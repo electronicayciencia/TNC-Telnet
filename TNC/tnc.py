@@ -409,14 +409,14 @@ class TNC(threading.Thread):
                     (is_command, buffer) = self.term_read()
 
                     if is_command:
-                        self.term_cmd(buffer)
+                        self.term_cmd(buffer.upper())
 
                 else:
                     (ch, is_command, buffer) = self.host_read()
 
                     if ch is not None:
                         if is_command:
-                            self.host_cmd(ch, buffer)
+                            self.host_cmd(ch, buffer.upper())
                         else:
                             self.host_data(ch, buffer)
 
