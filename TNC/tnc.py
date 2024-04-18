@@ -62,10 +62,11 @@ class ClosedPipeException(Exception):
 
 class TNC(threading.Thread):
 
-    def __init__(self, f, stafile, verbose = 0, channels = 4,
+    def __init__(self, f, fready, stafile = None, verbose = 0, channels = 4,
                  hostmode = False, mycall = None):
         """
         f: file handler to read/write (rb+)
+        fready: threading.Event to set when f is ready
         stafile: json with known stations IP
         verbose: log level verbosity
         channels: number of channels
@@ -75,12 +76,11 @@ class TNC(threading.Thread):
         threading.Thread.__init__(self, daemon=True)
 
         self.f = f
+        self.fready = fready
         self.verbose = verbose
         self.stafile = stafile
         self.max_connections = channels
         self.mycall = mycall
-
-        self.terminate = False
 
         if hostmode:
             self.host_mode()
@@ -402,23 +402,35 @@ class TNC(threading.Thread):
     def run(self):
         """
         Main read/execute loop
+        On read error do not exit.
         """
-        try:
-            while self.terminate == False:
-                if self.mode == MODE_TERM:
-                    (is_command, buffer) = self.term_read()
+        while True:
+            if not self.fready.is_set():
+                logger.debug("TNC waiting for pipe ready...")
 
-                    if is_command:
-                        self.term_cmd(buffer.upper())
+            self.fready.wait()
 
-                else:
-                    (ch, is_command, buffer) = self.host_read()
+            logger.debug("TNC running")
 
-                    if ch is not None:
+            # Main REPL
+            try:
+                while self.fready.is_set():
+                    if self.mode == MODE_TERM:
+                        (is_command, buffer) = self.term_read()
+
                         if is_command:
-                            self.host_cmd(ch, buffer.upper())
-                        else:
-                            self.host_data(ch, buffer)
+                            self.term_cmd(buffer.upper())
 
-        except ClosedPipeException:
-            logger.critical("Closed pipe")
+                    else:
+                        (ch, is_command, buffer) = self.host_read()
+
+                        if ch is not None:
+                            if is_command:
+                                self.host_cmd(ch, buffer.upper())
+                            else:
+                                self.host_data(ch, buffer)
+
+            # pipe closed, wait to reopen
+            except ClosedPipeException:
+                logger.error("Closed pipe.")
+                self.fready.clear()

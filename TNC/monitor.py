@@ -10,7 +10,7 @@ DEFAULT_CALLSIGN = b"NOCALL"
 DEFAULT_FILTER = b"N"
 
 MAX_PKTLEN = 254    # max data frame length
-MAX_MSGS = 10       # max number of frames to store in buffer
+MAX_MSGS = 15       # max number of frames to store in buffer
 
 MSG_I = 0  # Message is data
 MSG_S = 1  # Message is link status

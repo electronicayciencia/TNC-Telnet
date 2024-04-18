@@ -13,6 +13,7 @@ import re
 import sys
 import logging
 import argparse
+import threading
 from time import sleep
 from tnc import TNC
 
@@ -181,11 +182,7 @@ def setup_log(verbosity):
     logging.basicConfig(format='%(levelname)s: %(message)s', level=loglevel)
 
 
-if __name__ == '__main__':
-    print(NAME, VERSION)
-    args = parse_args()
-    setup_log(args.v)
-
+def check_known_stations(file):
     # Check stations file
     n = known_stations(args.stations)
     if n:
@@ -194,36 +191,73 @@ if __name__ == '__main__':
         logger.critical("No known stations. Edit %s and try again." % args.stations)
         sys.exit()
 
-    # Open named pipe
-    try:
-        f = open(args.file, 'rb+', buffering=0)
-    except Exception as e:
-        logger.critical("Cannot open I/O file: '%s'" % e)
-        sys.exit()
 
-    logger.info("Reading from '%s'..." % args.file)
+def wait_for_pipe(filename):
+    """
+    Wait until the file exists.
+    Return the handler of an open file.
+    """
+    logger.info("Waiting for %s to be created..." % filename)
 
-    # Start the TNC
+    while True:
+        try:
+            f = open(args.file, 'rb+', buffering=0)
+            logger.info("Reading from '%s'..." % args.file)
+            return f
+
+        except FileNotFoundError:
+            logger.debug("Pipe does not exist yet...")
+
+        except exception as e:
+            logger.critical("Cannot open I/O file '%s': %s" % (args.file, e))
+            sys.exit()
+
+        try:
+            sleep(1)
+        except KeyboardInterrupt:
+            quit()
+
+
+
+def quit():
+    print("Bye! 73")
+    sys.exit()
+
+
+if __name__ == '__main__':
+    print(NAME, VERSION)
+    fready = threading.Event()
+
+    args = parse_args()
+    setup_log(args.v)
+
+    check_known_stations(args.stations)
+
+    # Initialize TNC
     logger.info("Channels available: %d" % args.ch)
 
-    t = TNC(
-        f,
+    tnc = TNC(
+        f = None,   # initialize after open it
+        fready   = fready,
         stafile  = args.stations,
         verbose  = args.v,
         hostmode = args.jhost1,
         channels = args.ch,
         mycall   = args.mycall.encode("ascii")
     )
-    t.start()
+    tnc.start()
 
-    # Main loop
-    print("Press Ctrl+C to quit.")
-    try:
-        while t.is_alive():
-            sleep(0.01)
-    except KeyboardInterrupt:
-        pass
 
-    print("Bye! 73")
+    # Wait if the pipe is still closed
+    while True:
+        if not tnc.fready.is_set():
+            tnc.f = wait_for_pipe(args.file)
+            tnc.fready.set()
 
-    sys.exit()
+        # Main loop
+        try:
+            sleep(1)
+        except KeyboardInterrupt:
+            quit()
+
+
