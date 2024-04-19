@@ -17,7 +17,7 @@ Usage:
 
 DEFAULT_CALLSIGN = b"NOCALL"
 
-MAX_PKTLEN = 254    # max data frame length
+MAX_PKTLEN = 256    # max data frame length
 MAX_I_MSGS = 9      # max data frames to store in msgs buffer
 
 # Link state
@@ -81,6 +81,7 @@ class Channel(threading.Thread):
 
         self.seq  = 0          # sequence, for fake monitor
         self.nxt  = 1          # next sequence, for fake monitor
+        self.pending_monitor_rxdata = None # to mimic poll/final bit
 
 
     def run(self):
@@ -223,6 +224,7 @@ class Channel(threading.Thread):
             # Socket is closed by the other end
             # no exception but successfully read b""
             if data == b"":
+                self._monitor_rx(data) # flush pending I frames
                 self.monitor.log("DISC", self.remote, self.me)
                 self.monitor.log("UA", self.me, self.remote)
                 self.msgs.append([
@@ -237,19 +239,17 @@ class Channel(threading.Thread):
                     if data.startswith(b"\xff"):
                         self._reply_telnet_negotiation(s, data)
                     else:
-                        self.monitor.log(
-                           "I", self.remote, self.me,
-                           self.seq, self.nxt, data)
-                        self.monitor.log("RR", self.me, self.remote, self.seq, self.nxt)
-                        self._incr_seq()
+                        self._monitor_rx(data)
                         self.msgs.append([MSG_I, data])
 
-        # no data to read
+
+        # no more data to read
         except BlockingIOError:
-            pass
+            self._monitor_rx()
 
         # link reset
         except ConnectionResetError:
+            self._monitor_rx()
             self.monitor.log("DM", self.remote, self.me)
             self.msgs.append([
                 MSG_S,
@@ -292,6 +292,37 @@ class Channel(threading.Thread):
         sock.send(response)
 
         logger.debug("Telnet negotiation: %s -> %s" % (list(options), list(response)))
+
+
+    def _monitor_rx(self, data = None):
+        """
+        Monitor RX data in this way:
+        When initial data arrives: do not log it right away, but only store it locally.
+        When more data arrives: only monitor the last one with poll bit Zero.
+        When no more data: monitor the last one with poll bit One and the RR frame.
+        This way we save RR frames between contiguous I packets.
+        """
+        if data:
+            if self.pending_monitor_rxdata:
+                self.monitor.log(
+                    "I", self.remote, self.me,
+                    self.seq, self.nxt,
+                    self.pending_monitor_rxdata, p = False)
+
+                self._incr_seq()
+
+            self.pending_monitor_rxdata = data
+
+        else:
+            if self.pending_monitor_rxdata:
+                self.monitor.log(
+                    "I", self.remote, self.me,
+                    self.seq, self.nxt,
+                    self.pending_monitor_rxdata, p = True)
+
+                self.monitor.log("RR", self.me, self.remote, self.seq, self.nxt, p = False)
+                self.pending_monitor_rxdata = None
+                self._incr_seq()
 
 
     def _station2ip(self, station):

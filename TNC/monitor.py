@@ -121,10 +121,10 @@ class Monitor():
             return self.mfilter
 
 
-    def log(self, ctl, src, dst, seq = None, nxt = None, i = None, c = True):
+    def log(self, ctl, src, dst, seq = None, nxt = None, i = None, c = True, p = True):
         """
         Compose an add a monitor event.
-        Check if message buffer is full.
+        Rotate message buffer if it is full.
         Check the monitor filter.
         ctl: string, kind of frame (SABM, I, RR, UA, DISC or DM)
         src: bytes, source SSID
@@ -133,6 +133,7 @@ class Monitor():
         nxt: int, next sequence number (mandatory for numbered frames)
         i:   bytes, information (mandatory for I frames)
         c:   bool, It is from a connected channel
+        p:   poll/final bit
         """
         if ctl == "SABM":
             uisc = b"U"
@@ -152,11 +153,13 @@ class Monitor():
 
         elif ctl == "RR":
             uisc = b"S"
-            msg = b"fm %s to %s ctl RR%d-" % (src, dst, nxt)
+            poll = b"+" if p else b"-"
+            msg = b"fm %s to %s ctl RR%d%s" % (src, dst, nxt, poll)
 
         elif ctl == "I":
             uisc = b"I"
-            msg = b"fm %s to %s ctl I%d%d pid F0+" % (src, dst, nxt, seq)
+            poll = b"+" if p else b"-"
+            msg = b"fm %s to %s ctl I%d%d pid F0%s" % (src, dst, nxt, seq, poll)
 
         else:
             logger.warning("Unknown frame type to monitor: %s" % ctl)
@@ -165,10 +168,12 @@ class Monitor():
         if uisc not in self.mfilter:
             return
 
-        # Discard I frames if buffer is full.
-        if uisc in [b"I"] and len(self.msgs) >= MAX_MSGS:
-            logger.debug("Discarded monitor frame. Full buffer.")
-            return
+        # Rotate buffer if it is full.
+        if len(self.msgs) >= MAX_MSGS:
+            logger.debug("Monitor buffer full. Frame dropped.")
+            m = self.msgs.pop(0)
+            if m[0] == MSG_MON_HI:
+                self.msgs.pop(0)
 
         # Add messages
         if ctl == "I":
