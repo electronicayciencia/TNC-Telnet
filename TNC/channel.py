@@ -235,6 +235,7 @@ class Channel(threading.Thread):
 
             else:
                 if data:
+                    logger.trace("RX data (%d): %s" % (len(data), data))
                     # first packet may be a Telnet negotiation
                     if data.startswith(b"\xff"):
                         self._reply_telnet_negotiation(s, data)

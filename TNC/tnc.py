@@ -130,7 +130,7 @@ class TNC(threading.Thread):
         Write a response in terminal mode
         msg: message or b""
         """
-        logger.info("Terminal resp: %s" % (msg))
+        logger.debug("Terminal resp: %s" % (msg))
         self.f.write(msg + b"\r\n")
 
 
@@ -176,7 +176,7 @@ class TNC(threading.Thread):
                 buffer = b""
 
             elif c == CHR_CR:
-                logger.info("Terminal read: %d %s" % (is_command, buffer))
+                logger.debug("Terminal read: %d %s" % (is_command, buffer))
                 return (is_command, buffer)
 
             elif c == b'':

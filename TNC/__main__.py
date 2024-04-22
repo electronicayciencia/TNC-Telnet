@@ -206,7 +206,7 @@ def wait_for_pipe(filename):
             return f
 
         except FileNotFoundError:
-            logger.debug("Pipe does not exist yet...")
+            logger.trace("Pipe does not exist yet...")
 
         except exception as e:
             logger.critical("Cannot open I/O file '%s': %s" % (args.file, e))
