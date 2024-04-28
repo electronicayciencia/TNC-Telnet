@@ -83,6 +83,9 @@ class Channel(threading.Thread):
         self.nxt  = 1          # next sequence, for fake monitor
         self.pending_monitor_rxdata = None # to mimic poll/final bit
 
+        self.autoid = 1        # Automatically send callsign when asked for
+        self.idsent = 0        # We already sent the callsign, it didn't work for some reason
+
 
     def run(self):
         """
@@ -205,6 +208,8 @@ class Channel(threading.Thread):
             # Disconnect
             if not self.remote:
                 self.status = ST_DISC
+                self.idsent = 0
+
                 try:
                     s.close()
                 except:
@@ -240,6 +245,13 @@ class Channel(threading.Thread):
                     if data.startswith(b"\xff"):
                         self._reply_telnet_negotiation(s, data)
                     else:
+                        # it may be an ID prompt
+                        if data.endswith(b"\r\nCallsign : ") and self.autoid and not self.idsent:
+                            logging.debug("Auto-reply to Callsign prompt")
+                            data = data.replace(b"\r\nCallsign : ", b"\r\n")
+                            s.send(self.me + b"\r\n")
+                            self.idsent = 1
+                        
                         self._monitor_rx(data)
                         self.msgs.append([MSG_I, data])
 
