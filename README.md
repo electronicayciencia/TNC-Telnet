@@ -23,6 +23,15 @@ Monitor traffic is also simulated:
 Remember **these are actual TCP/IP** sockets in disguise.
 
 
+## Demo
+
+This is a typical Graphic Packet session at 1200 bauds. Like it was in the 90's.
+
+I connect to a DX cluster and also to a BBS. Read some random message and then disconnect.
+
+https://github.com/user-attachments/assets/a5ce2335-2dc3-4d53-b70d-0198639fd8aa
+
+
 ## Usage
 
 ### Known stations
@@ -122,14 +131,4 @@ Since this is basically a telnet client, you can use it to connect to **any** Te
 
 ![](img/gp_telnet.png)
 
-
-## Demo
-
-This is a typical Graphic Packet session at 1200 bauds. Like it was in the 90's.
-
-I connect to a DX cluster and also to a BBS. Read some random message and then disconnect.
-
-<video width="640" height="480" controls>
-  <source src="img/gp.mp4" type="video/mp4">
-</video>
 
